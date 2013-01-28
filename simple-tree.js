@@ -7,6 +7,13 @@
 (function(window, console) {
 
 function jqSimpleTree(div, data, opt) {
+    var safeTextBuff = $("<div/>");
+
+    function getEscapedText(text){
+        text = text || "";
+        return safeTextBuff.text(text).html();
+    }
+
     var tree = {
         _data: null,
         _div: null, //render container
@@ -172,6 +179,7 @@ function jqSimpleTree(div, data, opt) {
                 cssClass = (node.cssClass) ? node.cssClass : "",
                 bungClass = (node.bungClass) ? node.bungClass : "",
                 subIconClass = (node.subIconClass) ? node.subIconClass : "",
+                title = (node.safeTitle !== false) ? getEscapedText(node.title || "")  : (node.title || ""),
                 alt = (node.alt) ? " title='" + node.alt +"' ": "",
                 hasChild = (isFolder && node.nodes.length > 0),
                 iconSizeStyle = (node.iconSize != undefined) ? "height:" + node.iconSize + "px; width:" + node.iconSize + "px;" : "",
@@ -179,7 +187,7 @@ function jqSimpleTree(div, data, opt) {
                     "<td><span class='simple-tree-expand "+((!hasChild) ? "simple-tree-no-child" : "" )+ " " + ((isClosed) ? "simple-tree-close": "") + "'>&nbsp;</span></td>"+
                     "<td>" + ((node.icon != undefined) ? "<img src='"+ node.icon + "' class='simple-tree-item-icon' style='" + iconSizeStyle + "'>"
                     : "<span class='simple-tree-item-icon'>&nbsp;</span>") + "<span class='simple-tree-item-sub-icon " + subIconClass + "'>&nbsp;</span></td>"+
-                    "<td><span class='simple-tree-title' "+ alt +">" + (node.title || "") + "</span></td><td class='simple-tree-last-td'><span class='simple-tree-bung " + bungClass + "'>&nbsp;</span></td></tr></table>"),
+                    "<td><span class='simple-tree-title' "+ alt +">" + title + "</span></td><td class='simple-tree-last-td'><span class='simple-tree-bung " + bungClass + "'>&nbsp;</span></td></tr></table>"),
                 ul = (isFolder) ? this._getNewContainerEl(node.id) : undefined;
 
             (isClosed && ul) ? ul.hide() : null;
@@ -304,6 +312,9 @@ function jqSimpleTree(div, data, opt) {
             if (parent != undefined && callback(parent) != false){
                 this._traverseParents(parent['id'], callback);
             }
+        },
+        traverseParents: function(){
+            this._traverseParents.apply(this, arguments);
         },
         _getContainerForNodes: function(id){
             return this._getNodesMap(id).nodesContainer;
@@ -762,7 +773,8 @@ function jqSimpleTree(div, data, opt) {
         setNodeTitle: function(id, text){
             var map = this._getNodesMap(id);
             if (map){
-                map.divs.find(".simple-tree-title").html(text);
+                var title = (map.node.safeTitle !== false) ? getEscapedText(text) : text;
+                map.divs.find(".simple-tree-title").html(title);
                 map.node.title = text;
             }
         },
