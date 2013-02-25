@@ -279,21 +279,26 @@ function jqSimpleTree(div, data, opt) {
                 function callTraverse(){
                     params = opt || {};
                     params.div = pDiv;
-                    self._traverseNodes(list[i], callback, params);
+                    return self._traverseNodes(list[i], callback, params);
                 }
 
                 if (reverse){
                     for (i = list.length - 1; i >= 0; i--){
                         //walk by reverse
-                        callTraverse();
+                        if (callTraverse() === false){
+                            break;
+                        }
                     }
                 } else {
                     for (i = 0, l = list.length; i < l; i++){
                         //walk by default
-                        callTraverse();
+                        if (callTraverse() === false){
+                            break;
+                        }
                     }
                 }
             }
+            return pDiv;
         },
         getRootNode: function(){
             var data = this._data,

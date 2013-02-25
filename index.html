@@ -72,7 +72,7 @@
     $(document).ready(function() {
         var simpleData = {title:"root", id:0,
             nodes:[
-                {title:"child", alt:"alt", id: 5, nodes:[{title:"chl3", id: 2, cssClass:'testCss'}, {title: "ch4", id:3, closed:true, nodes:[{id: "ko", title:"ko"}]}]},
+                {title:"child", alt:"alt", id: 5, nodes:[{title:"chl3", id: 4, cssClass:'testCss'}, {title: "ch4", id:3, closed:true, nodes:[{id: "ko", title:"ko"}]}]},
                 {title:"ch2", id: 1, nodes: []}
             ]
         };
@@ -214,6 +214,11 @@
 
         $("#focusNode").click(function(){
             hugeTree.focusNode(hugeTree.getSelectedNodeId());
+        });
+
+        hugeTree.traverseNodes(hugeTree.getData().nodes[0], function(node){
+            console.log(node.title);
+            return false;
         });
 
         //disable drag sample
