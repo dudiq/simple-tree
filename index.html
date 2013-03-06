@@ -234,6 +234,9 @@
             //newTree.destroy();
             newTree.getNodePos(5);
             newTree.setNodeClass(5, "testClass");
+            setTimeout(function(){
+                newTree.setNodeClass(5, "testClass2");
+            }, 1000);
             console.log(newTree.getNodeClass(5));
             //newTree.setNodeClass(5, "");
             //console.log(newTree.getNodeClass(5));

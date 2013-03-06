@@ -763,11 +763,12 @@ function jqSimpleTree(div, data, opt) {
         },
         _setNodeCustomCss: function(map, el, id, val){
             if (map){
-                if (val == ""){
-                    (map['node'][id] != undefined && map['node'][id] != "") ? el.removeClass(map['node'][id]) : null;
-                } else {
+
+                (map['node'][id]) && el.removeClass(map['node'][id]);
+                if (val != ""){
                     el.addClass(val);
                 }
+
                 map['node'][id] = val;
             }
         },
