@@ -1,5 +1,7 @@
 /**
 * jQuery drag plugin for Simple Tree
+* https://github.com/dudiq/simple-tree
+*
 * @version: 0.4 - 2011.10.20
 * @author: dudiq
 * @licence: MIT http://www.opensource.org/licenses/mit-license.php
