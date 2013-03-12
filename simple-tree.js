@@ -492,7 +492,7 @@ function jqSimpleTree(div, data, opt) {
             //nodes - array of ids
             if ($.isArray(nodes)){
                 for (var i = 0, l = nodes.length; i < l; i++){
-                    var id = nodes[i];
+                    var id = $.isPlainObject(nodes[i]) ? nodes[i].id : nodes[i];
                     this.removeNode(id);
                 }
             }
