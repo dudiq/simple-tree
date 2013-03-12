@@ -57,6 +57,7 @@
             <span id="focusNode" class="btn">focus node</span>
             <span id="createhuge" class="btn">create huge</span>
             <span id="huge" class="btn">huge</span><br>
+            <span id="newNode" class="btn">new node</span><br>
             <div id="hugeTree" class="divTree" ></div> <!-- style="position: absolute; left: 348px; top: 500px;"  -->
         </td>
     </tr>
@@ -161,8 +162,13 @@
             }
             }});
 
-        var hugeTree = jqSimpleTree($("#hugeTree"), {title:"root", id:0, hideNodeTitle: true, nodes:[{title:"child", id: 4, icon: "http://cs5560.vk.com/u4616647/a_8b9d09a0.jpg",  nodes:[{title:"chl3", id: 2}, {title: "ch4", id:3}]}, {title:"ch2", id: 1, nodes: []}]},
-                                    {plugins: {drag:{
+        var hugeTree = jqSimpleTree($("#hugeTree"), {title:"root", id:0, hideNodeTitle: true,
+                    nodes:[{title:"f3", id: 4, icon: "http://cs5560.vk.com/u4616647/a_8b9d09a0.jpg",  nodes:[{title:"chl5", id: 2}, {title: "ch4", id:3}]},
+                            {title:"f2", id: 1, nodes: []},
+                        {title:"f3", id: 23},
+                        {title:"f2", id: 24}
+                    ]},
+                                    {sort:true, plugins: {drag:{
                                         dragEnd: function(dragNode, id, pos, source, destination){
                                             destination.moveNodeByPos(dragNode, id, pos, source);
                                         }
@@ -200,6 +206,10 @@
 
         $("#createhuge").click(function(){
             hugeNode = createHugeNode();
+        });
+
+        $("#newNode").click(function(){
+            hugeTree.addNode(4,{title:"ch1"});
         });
 
         $("#huge").click(function(){

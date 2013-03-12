@@ -11,9 +11,42 @@
 function jqSimpleTree(div, data, opt) {
     var safeTextBuff = $("<div/>");
 
+    function clone(data){
+        return (jQuery.extend(true, {}, {val: data})).val;
+    }
+
     function getEscapedText(text){
         text = text || "";
         return safeTextBuff.text(text).html();
+    }
+
+    function getNewNodePos(parentId, newData){
+        var pNode = this.getNode(parentId),
+            nodes = pNode.nodes,
+            pos,
+            compare,
+            tmpNodes = [];
+        //create temp array for get right position
+        for (var i = 0, l = nodes.length; i < l; i++){
+            compare = compareItems(nodes[i], newData);
+            if (compare == 1){
+                pos = i;
+                break;
+            }
+        }
+        return pos;
+    }
+
+    function compareItems(a, b){
+        var ret = (a.title == b.title) ? 0 : (a.title < b.title) ? -1 : 1;
+
+        (a.nodes && !b.nodes) && (ret = -1);
+        (!a.nodes && b.nodes) && (ret = 1);
+        return ret;
+    }
+
+    function sortNodes(data){
+        data.sort(compareItems);
     }
 
     var tree = {
@@ -53,9 +86,10 @@ function jqSimpleTree(div, data, opt) {
             }
         },
         destroyPlugins: function(){
-            for (var i in this._plugins){
-                this._plugins[i].destroy();
-                delete this._plugins[i];
+            var plugs = this._plugins;
+            for (var key in plugs){
+                plugs[key].destroy();
+                delete plugs[key];
             }
         },
         id: function(){return this._id;},
@@ -63,13 +97,14 @@ function jqSimpleTree(div, data, opt) {
             if (data != undefined) {
                 this.clear();
                 var treeData = ($.isArray(data)) ? {hideNodeTitle: true, nodes: data} : data;
-                if (this._addNewNode(undefined, treeData, this._div)){
+                //treeData = this._opt['sort'] ? this.sort(treeData): treeData;
+                if (this._addNewNode({data: treeData, buff: this._div, sort: this._opt['sort']})){
                     this._data = data;
                 }
             }
         },
         getData: function(){
-            return (jQuery.extend(true, {}, {val: this._data})).val;
+            return clone(data);
         },
         getDataLink: function(){
             return this._data;
@@ -203,7 +238,13 @@ function jqSimpleTree(div, data, opt) {
             node.userData = (node.userData == undefined) ? {} : node.userData;
             return {itemDiv: itemDiv, ul: ul};
         },
-        _addNewNode: function(parentId, data, buff, pos){
+        _addNewNode: function(params){
+            var parentId = params.parentId,
+                data = params.data,
+                buff = params.buff,
+                sort = params.sort,//sort only from setData, when inserting new node, getting only position
+                pos = params.pos;
+
             if (!buff){
                 this._error('Error :: append HTML element to undefined container');
                 return;
@@ -213,7 +254,10 @@ function jqSimpleTree(div, data, opt) {
                 newLine,
                 canAdd = true,
                 self = this;
-            this._traverseNodes(data, function(node, pdiv) {
+            this._traverseNodes(data, function(node, pdiv, level) {
+                if (sort && node.nodes){
+                    sortNodes(node.nodes);
+                }
                 //create node and return $("<ul>") element if node has children
                 node.id = (node.id == undefined) ? self._generateUniqueId(nodesMap) : node.id;
                 if (nodesMap[node.id] != undefined){
@@ -264,24 +308,27 @@ function jqSimpleTree(div, data, opt) {
         traverseNodes: function(node, callback, opt){
             this._traverseNodes(node, callback, opt);
         },
-        _traverseNodes: function(node, callback, opt) {
+        _traverseNodes: function(node, callback, opt, level) {
+            opt = (opt) ? opt : {};
             var list = node['nodes'], pDiv,
-                div = opt && opt.div,
+                div = opt.div,
+                level = level || 0,
                 params,
                 self = this,
-                reverse = opt && opt.reverse;
+                reverse = opt.reverse;
             if ($.isArray(node)) {
                 list = node;
                 pDiv = div;
             } else {
-                pDiv = callback.call(this, node, div);
+                pDiv = callback.call(this, node, div, level);
             }
             if (list != undefined && pDiv !== false) {
                 var i = 0, l = list.length;
                 function callTraverse(){
-                    params = opt || {};
+                    params = opt;
                     params.div = pDiv;
-                    return self._traverseNodes(list[i], callback, params);
+                    level++;
+                    return self._traverseNodes(list[i], callback, params, level);
                 }
 
                 if (reverse){
@@ -348,6 +395,11 @@ function jqSimpleTree(div, data, opt) {
                 this._error('Error :: Wrong parent ID');
                 return;
             }
+
+            if (this._opt['sort'] && pos === undefined){
+                pos = getNewNodePos.call(this, parentId, newData);
+            }
+
             var data = sysStruct.node;
             var parentEls = sysStruct.divs;
             if (data.nodes == undefined || data.nodes.length == 0){
@@ -357,7 +409,7 @@ function jqSimpleTree(div, data, opt) {
                 sysStruct.nodesContainer = (sysStruct.nodesContainer) ? sysStruct.nodesContainer : this._getNewContainerEl(parentId);
                 $(parentEls[parentEls.length - 1]).after(sysStruct.nodesContainer);
             }
-            if (this._addNewNode(parentId, newData, sysStruct.nodesContainer, pos)){
+            if (this._addNewNode({parentId: parentId, data:newData, buff: sysStruct.nodesContainer, pos: pos})){
                 if ($.isArray(newData)){
                     if (newData.length > 0){
                         data.nodes = data.nodes.concat(newData);
