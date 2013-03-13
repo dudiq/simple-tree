@@ -127,6 +127,11 @@ function jqSimpleTree(div, data, opt) {
             });
             return h;
         },
+        getSortedPosition: function(node){
+            node = ($.isPlainObject(node)) ? node : this.getNode(node);
+            var pNode = this.getParentNode(node.id);
+            return getNewNodePos.call(this, pNode.id, node);
+        },
         getLineHeight: function(){
             var line = this._createLine({title:"&nbsp;"}),
                 div = $("<div/>"),
@@ -427,6 +432,7 @@ function jqSimpleTree(div, data, opt) {
         },
         moveNodeByPos: function(node, parentId, pos, source){
             source = (source) ? source : this;
+            parentId = (parentId === undefined) ? source.getParentNodeId(node.id) : parentId;
             source.removeNode(node.id);
             return this.addNode(parentId, node, pos);
         },
