@@ -25,20 +25,27 @@ function jqSimpleTree(div, data, opt) {
             nodes = pNode.nodes,
             pos,
             compare,
+            decVal = 0,
             tmpNodes = [];
         //create temp array for get right position
         for (var i = 0, l = nodes.length; i < l; i++){
+            if (nodes[i].id == newData.id){
+                decVal = -1;
+            }
             compare = compareItems(nodes[i], newData);
             if (compare == 1){
                 pos = i;
                 break;
             }
         }
+        pos += decVal;
         return pos;
     }
 
     function compareItems(a, b){
-        var ret = (a.title == b.title) ? 0 : (a.title < b.title) ? -1 : 1;
+        var aTitle = (a.title + "").toLowerCase();
+        var bTitle = (b.title + "").toLowerCase();
+        var ret = (aTitle == bTitle) ? 0 : (aTitle < bTitle) ? -1 : 1;
 
         (a.nodes && !b.nodes) && (ret = -1);
         (!a.nodes && b.nodes) && (ret = 1);
@@ -47,6 +54,15 @@ function jqSimpleTree(div, data, opt) {
 
     function sortNodes(data){
         data.sort(compareItems);
+    }
+
+    function setMarginToRoot(val, div){
+        if (val){
+            div.addClass("simple-tree-item-root");
+        } else {
+            div.removeClass("simple-tree-item-root");
+        }
+
     }
 
     var tree = {
@@ -100,6 +116,9 @@ function jqSimpleTree(div, data, opt) {
                 //treeData = this._opt['sort'] ? this.sort(treeData): treeData;
                 if (this._addNewNode({data: treeData, buff: this._div, sort: this._opt['sort']})){
                     this._data = data;
+                    var rootNode = this.getRootNode();
+                    var rootSys = this._getNodesMap(rootNode.id);
+                    setMarginToRoot(rootNode.hideNodeTitle, rootSys.nodesContainer);
                 }
             }
         },
@@ -129,8 +148,8 @@ function jqSimpleTree(div, data, opt) {
         },
         getSortedPosition: function(node){
             node = ($.isPlainObject(node)) ? node : this.getNode(node);
-            var pNode = this.getParentNode(node.id);
-            return getNewNodePos.call(this, pNode.id, node);
+            var pNodeId = this.getParentNodeId(node.id);
+            return getNewNodePos.call(this, pNodeId, node);
         },
         getLineHeight: function(){
             var line = this._createLine({title:"&nbsp;"}),
@@ -235,7 +254,6 @@ function jqSimpleTree(div, data, opt) {
             (isClosed && ul) ? ul.hide() : null;
             if (node.hideNodeTitle === true) {
                 itemDiv.hide();
-                (ul != undefined) ? ul.css("margin", "0") : undefined;
             }
             itemDiv.data({
                 "id": node.id
@@ -414,6 +432,9 @@ function jqSimpleTree(div, data, opt) {
                 sysStruct.nodesContainer = (sysStruct.nodesContainer) ? sysStruct.nodesContainer : this._getNewContainerEl(parentId);
                 $(parentEls[parentEls.length - 1]).after(sysStruct.nodesContainer);
             }
+            if (this.getRootNode() == data){
+                setMarginToRoot(data.hideNodeTitle, sysStruct.nodesContainer);
+            }
             if (this._addNewNode({parentId: parentId, data:newData, buff: sysStruct.nodesContainer, pos: pos})){
                 if ($.isArray(newData)){
                     if (newData.length > 0){
@@ -581,9 +602,6 @@ function jqSimpleTree(div, data, opt) {
                             self._onSelect(parentEl, true, self._isCtrlPressed(ev));
                             $(tree).trigger(jqSimpleTree.onClick, [parentEl.data("id"), el, parentEl]);
                     }
-                    if (!self.stopBubbleEvent()){
-                        ev.stopPropagation();
-                    }
                 }
             }).unbind("dblclick.simpleTree").bind("dblclick.simpleTree", function(ev){
                 if (self.enable()){
@@ -592,9 +610,6 @@ function jqSimpleTree(div, data, opt) {
                         isExpandClick = el.hasClass("simple-tree-expand");
                     if (!isExpandClick && parentEl != null && parentEl.length !=0){
                         $(tree).trigger(jqSimpleTree.onDblClick, [parentEl.data("id"), el]);
-                    }
-                    if (!self.stopBubbleEvent()){
-                        ev.stopPropagation();
                     }
                 }
             }).unbind("mouseover.simpleTree").bind("mouseover.simpleTree", function(ev){
@@ -878,12 +893,6 @@ function jqSimpleTree(div, data, opt) {
                 this._treeEnv["selectedNodesId"] && this.updateSelection(this._treeEnv["selectedNodesId"]);
             }
             return this._opt['selectedBorder'];
-        },
-        stopBubbleEvent: function(val){
-            if (val != undefined){
-                this._opt['stopBubbleEvent'] = val;
-            }
-            return (this._opt['stopBubbleEvent'] === true);
         },
         indent: function(size){
             if (size != undefined){

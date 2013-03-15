@@ -14,6 +14,11 @@
     -moz-user-select:none; -khtml-user-select:none; -webkit-user-select:none; user-select: none;
     display: inline-block;
 }
+
+.simple-tree-item-root{
+    margin: 0px !important;
+}
+
 .simple-tree-disable{
     opacity: 0.6;
     filter:Alpha(Opacity=60);
