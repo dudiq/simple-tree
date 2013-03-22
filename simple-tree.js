@@ -12,7 +12,13 @@
 
 define(function (require) {
 
-    //private methods
+
+    var isMobile = new RegExp("mobile", "i").test(navigator.userAgent),
+        start_ev = ((isMobile) ? "touchstart" : "mousedown"),
+        move_ev = ((isMobile) ? "touchmove" : "mousemove"),
+        end_ev = ((isMobile) ? "touchend" : "mouseup");
+
+        //private methods
     function log(msg){
         if (console)
             console.log(msg);
@@ -26,7 +32,6 @@ define(function (require) {
     function clone(data){
         return (jQuery.extend(true, {}, {val: data})).val;
     }
-
 
     var safeTextBuff = $("<div/>");
 
@@ -594,9 +599,14 @@ define(function (require) {
             },
             _bindEvents: function(){
                 var self = this,
+                    canCallEndEv = false,
                     div = this._div;
+
+
                 //bind events to root div. we don't need to bind events to every child
-                this._div.unbind("mousedown.simpleTree").bind("mousedown.simpleTree", function(ev){
+                this._div.unbind(".simpleTree")
+                .bind(start_ev + ".simpleTree", function(ev){
+                    canCallEndEv = true;
                     if (self.enable()){
                         var el = self._getEventElem(ev),
                             parentEl = self._getParentItemElement(el),
@@ -605,8 +615,8 @@ define(function (require) {
                             $(tree).trigger(jqSimpleTree.onMouseDown, [parentEl.data("id"), el]);
                         }
                     }
-                }).unbind("click.simpleTree").bind("click.simpleTree", function(ev){
-                    if (self.enable()){
+                }).bind(end_ev + ".simpleTree", function(ev){
+                    if (canCallEndEv && self.enable()){
                         var el = self._getEventElem(ev),
                             parentEl = self._getParentItemElement(el),
                             isExpandClick = el.hasClass("simple-tree-expand");
@@ -618,7 +628,7 @@ define(function (require) {
                                 $(tree).trigger(jqSimpleTree.onClick, [parentEl.data("id"), el, parentEl]);
                         }
                     }
-                }).unbind("dblclick.simpleTree").bind("dblclick.simpleTree", function(ev){
+                }).bind("dblclick.simpleTree", function(ev){
                     if (self.enable()){
                         var el = self._getEventElem(ev),
                             parentEl = self._getParentItemElement(el),
@@ -627,7 +637,7 @@ define(function (require) {
                             $(tree).trigger(jqSimpleTree.onDblClick, [parentEl.data("id"), el]);
                         }
                     }
-                }).unbind("mouseover.simpleTree").bind("mouseover.simpleTree", function(ev){
+                }).bind("mouseover.simpleTree", function(ev){
                     if (self.enable()){
                         var el = self._getEventElem(ev);
                         if (el.hasClass("simple-tree-title")) {
@@ -635,7 +645,7 @@ define(function (require) {
                             $(tree).trigger(jqSimpleTree.onMouseOver, [clickEl.data("id")]);
                         }
                     }
-                }).unbind("mouseout.simpleTree").bind("mouseout.simpleTree", function(ev){
+                }).bind("mouseout.simpleTree", function(ev){
                     if (self.enable()){
                         var el = self._getEventElem(ev);
                         if (el.hasClass("simple-tree-title")) {
@@ -644,6 +654,11 @@ define(function (require) {
                         }
                     }
                 });
+                if (isMobile){
+                    this._div.bind(move_ev + ".simpleTree", function(){
+                        canCallEndEv = false;
+                    });
+                }
             },
             _setSelectedStyleToEl: function(el){
                 var selCss = "simple-tree-item-selected",
