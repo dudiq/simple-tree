@@ -75,6 +75,7 @@ define(function (require) {
                                 } else {
                                     tree.selectNode(node.id, false, false);
                                 }
+                                dragObj.nodes = tree.getSelectedNodes();
                             }
                         }
                         return div;
@@ -146,8 +147,7 @@ define(function (require) {
                     }
                     if (pos != undefined){
                         if (this._tree._div.parent().has(destEl).length != 0){
-                            var nodes = this._tree.getSelectedNodes();
-                            this._opt['dragEnd'](nodes, parentId, pos, dragObj.source, dragObj.destination);
+                            this._opt['dragEnd'](dragObj.nodes, parentId, pos, dragObj.source, dragObj.destination);
                         }
                     }
                 }
