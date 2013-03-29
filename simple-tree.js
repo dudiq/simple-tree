@@ -16,7 +16,7 @@ define(function (require) {
     var isMobile = new RegExp("mobile", "i").test(navigator.userAgent),
         start_ev = ((isMobile) ? "touchstart" : "mousedown"),
         move_ev = ((isMobile) ? "touchmove" : "mousemove"),
-        end_ev = ((isMobile) ? "touchend" : "mouseup");
+        end_ev = ((isMobile) ? "touchend" : "click");
 
         //private methods
     function log(msg){
@@ -624,8 +624,8 @@ define(function (require) {
                             self._expandCollapseNode(el);
                         }
                         if (!isExpandClick && parentEl != null && parentEl.length !=0){
-                                self._onSelect(parentEl, true, isCtrlPressed(ev));
-                                $(tree).trigger(jqSimpleTree.onClick, [parentEl.data("id"), el, parentEl]);
+                            self._onSelect(parentEl, true, isCtrlPressed(ev));
+                            $(tree).trigger(jqSimpleTree.onClick, [parentEl.data("id"), el, parentEl]);
                         }
                     }
                 }).bind("dblclick.simpleTree", function(ev){
