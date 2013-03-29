@@ -83,7 +83,8 @@ define(function (require) {
                 {title: "ch4", id:3}
             ]},
             {title:"ch2", id: 1, nodes: []}
-        ]}, {plugins:{drag: {
+        ]},
+            {multiSelect: true, plugins:{drag: {
                 enable: true,
                 dragEnd: function(dragNode, parentId, pos, source, destination){
                     console.dir(arguments);

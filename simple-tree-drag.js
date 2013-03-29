@@ -62,6 +62,19 @@ define(function (require) {
                                 //helper for dragging nodes
                                 var tHeight = target.parent().height() - 4; // 4px is border * 2 + padding * 2
                                 dragObj = self.createDragObj(node, (tHeight == 0) ? 14 : tHeight);
+
+                                //set selection
+                                var selIds = tree.getSelectedNodesId();
+                                var selIdsLen = selIds.length;
+                                if (selIdsLen > 1){
+                                    if ($.inArray(node.id, selIds) == -1){
+                                        tree.selectNode(node.id, false, false);
+                                    } else {
+                                        div.html(node.title + " + " + (selIdsLen - 1));
+                                    }
+                                } else {
+                                    tree.selectNode(node.id, false, false);
+                                }
                             }
                         }
                         return div;
@@ -133,13 +146,14 @@ define(function (require) {
                     }
                     if (pos != undefined){
                         if (this._tree._div.parent().has(destEl).length != 0){
-                            this._opt['dragEnd'](node, parentId, pos, dragObj.source, dragObj.destination);
+                            var nodes = this._tree.getSelectedNodes();
+                            this._opt['dragEnd'](nodes, parentId, pos, dragObj.source, dragObj.destination);
                         }
                     }
                 }
             },
 
-            onDragStart: function(){
+            onDragStart: function(dObj){
                 this.container().addClass("simple-tree-drag");
                 this._dragHelper.css({left:-100, top: -100});
                 this.container().append(this._dragHelper.show());
@@ -234,7 +248,7 @@ define(function (require) {
                         var st = self._tree._div.scrollTop();
                         st += dx;
                         self._tree._div.scrollTop(st);
-                    }
+                    };
                     goScroll();
                     this._scrollTimer = setInterval(function(){
                         goScroll();
