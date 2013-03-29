@@ -987,7 +987,7 @@ define(function (require) {
 
     //loading plugins
     var gPlugins = {
-        "drag" : require("simple-tree-drag")
+        "drag" : require("./simple-tree-drag")
     };
 
     return jqSimpleTree;
