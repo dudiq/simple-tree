@@ -48,17 +48,19 @@ define(function (require) {
             decVal = 0,
             tmpNodes = [];
         //create temp array for get right position
-        for (var i = 0, l = nodes.length; i < l; i++){
-            if (nodes[i].id == newData.id){
-                decVal = -1;
+        if (nodes){
+            for (var i = 0, l = nodes.length; i < l; i++){
+                if (nodes[i].id == newData.id){
+                    decVal = -1;
+                }
+                compare = compareItems(nodes[i], newData);
+                if (compare == 1){
+                    pos = i;
+                    break;
+                }
             }
-            compare = compareItems(nodes[i], newData);
-            if (compare == 1){
-                pos = i;
-                break;
-            }
+            pos += decVal;
         }
-        pos += decVal;
         return pos;
     }
 
@@ -83,6 +85,18 @@ define(function (require) {
             div.removeClass("simple-tree-item-root");
         }
 
+    }
+
+    function getTouchEvent(ev){
+        var e;
+        if (ev.originalEvent.touches && ev.originalEvent.touches.length) {
+            e = ev.originalEvent.touches[0];
+        } else if (ev.originalEvent.changedTouches && ev.originalEvent.changedTouches.length) {
+            e = ev.originalEvent.changedTouches[0];
+        } else {
+            e = ev;
+        }
+        return e;
     }
 
     function isCtrlPressed(ev){
@@ -173,6 +187,7 @@ define(function (require) {
                 });
                 return h;
             },
+            getTouchEvent: getTouchEvent,
             getSortedPosition: function(node){
                 node = ($.isPlainObject(node)) ? node : this.getNode(node);
                 var pNodeId = this.getParentNodeId(node.id);
@@ -304,7 +319,7 @@ define(function (require) {
                     //create node and return $("<ul>") element if node has children
                     node.id = (node.id == undefined) ? self._generateUniqueId(nodesMap) : node.id;
                     if (nodesMap[node.id] != undefined){
-                        self._error("Error :: Detects duplicate ID in data");
+                        showError("Error :: Detects duplicate ID in data");
                         canAdd = false;
                         return false;
                     } else {

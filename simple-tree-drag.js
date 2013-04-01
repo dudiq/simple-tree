@@ -8,6 +8,44 @@
 **/
 define(function (require) {
 
+    var touchSupport = 'ontouchstart' in window.document;
+    var namespace_ev = ".simple-tree-drag";
+    var start_ev = (touchSupport ? 'touchstart' : 'mousedown') + namespace_ev;
+    var move_ev = (touchSupport ? 'touchmove' : 'mousemove') + namespace_ev;
+    var end_ev = (touchSupport ? 'touchend' : 'mouseup') + namespace_ev;
+
+    function createHelpers(ev, dragObj){
+        var tree = this._tree;
+        //tree._div.draggable("option", "cursorAt", {left: 20, top: 20});
+        var target = tree._getEventElem(ev);
+        var id = ((target.hasClass("simple-tree-item")) ? target : tree._getParentItemElement(target).data("id"));
+        var div = $("<div class='simple-tree-drag-el'/>");
+        if (id != undefined){
+            var node = tree.getNode(id);
+            if (node && node.canDrag !== false){
+                div.html(node.title);
+                //helper for dragging nodes
+                var tHeight = target.parent().height() - 4; // 4px is border * 2 + padding * 2
+                dragObj = this.createDragObj(node, (tHeight == 0) ? 14 : tHeight);
+
+                //set selection
+                var selIds = tree.getSelectedNodesId();
+                var selIdsLen = selIds.length;
+                if (selIdsLen > 1){
+                    if ($.inArray(node.id, selIds) == -1){
+                        tree.selectNode(node.id, false, false);
+                    } else {
+                        div.html(node.title + " + " + (selIdsLen - 1));
+                    }
+                } else {
+                    tree.selectNode(node.id, false, false);
+                }
+                dragObj.nodes = tree.getSelectedNodes();
+            }
+        }
+        return {helper: div, dragObj: dragObj};
+    }
+
     var dragging = function (tree, opt){
         var drag = {
             _tree: null,
@@ -40,65 +78,69 @@ define(function (require) {
             initDrag: function(){
                 var tree = this._tree,
                     opt = this._opt,
+                    $win = $(window),
+                    $body = $(document.body),
                     container = this.container(),//container where drag will be
                     dragObj = null,
                     self = this,
+                    treeDiv = tree._div,
                     selFolderCss = {"-webkit-box-shadow": "0 0 7px black", "-moz-box-shadow": "0 0 7px black", "box-shadow": "0 0 7px black"},
                     unSelFolderCss = {"-webkit-box-shadow": "", "-moz-box-shadow": "", "box-shadow": ""};
 
                 this._dragHelper = $("<div class='simple-tree-drag-line'/>").hide();
-                //tree._div.draggable("option", "cursorAt", {left: 20, top: 20});
 
-                tree._div.draggable({
-                    helper: function(ev){
-                        tree._div.draggable("option", "cursorAt", {left: 20, top: 20});
-                        var target = tree._getEventElem(ev);
-                        var id = ((target.hasClass("simple-tree-item")) ? target : tree._getParentItemElement(target).data("id"));
-                        var div = $("<div class='simple-tree-drag-el'/>");
-                        if (id != undefined){
-                            var node = tree.getNode(id);
-                            if (node && node.canDrag !== false){
-                                div.html(node.title);
-                                //helper for dragging nodes
-                                var tHeight = target.parent().height() - 4; // 4px is border * 2 + padding * 2
-                                dragObj = self.createDragObj(node, (tHeight == 0) ? 14 : tHeight);
+                treeDiv.unbind(namespace_ev);
 
-                                //set selection
-                                var selIds = tree.getSelectedNodesId();
-                                var selIdsLen = selIds.length;
-                                if (selIdsLen > 1){
-                                    if ($.inArray(node.id, selIds) == -1){
-                                        tree.selectNode(node.id, false, false);
-                                    } else {
-                                        div.html(node.title + " + " + (selIdsLen - 1));
-                                    }
-                                } else {
-                                    tree.selectNode(node.id, false, false);
-                                }
-                                dragObj.nodes = tree.getSelectedNodes();
-                            }
-                        }
-                        return div;
-                    },
-                    start: function(ev, ui){
-                        if (dragObj && dragObj.dragNode != null){
-                            self.onDragStart(dragObj);
-                        }
-                    },
-                    drag: function(ev, ui){
-                        if (dragObj)
-                            self.onDrag(ev, ui, dragObj);
-                    },
-                    stop: function(ev, ui){
-                        self.container().removeClass('simple-tree-drag');
-                        if (dragObj)
-                            self._onDragStop(ev, dragObj);
-                        dragObj = null;
-                    },
-                    containment: container,
-                    appendTo: container,
-                    disabled: !self.enable()
+                var firstMove = false;
+                var dranEndFlag = false;
+                var helper;
+                var dx = 0, dy = 0;
+                treeDiv.bind(start_ev, function(ev){
+                    if (self.enable()){
+                        firstMove = false;
+                        dx = self.pulling() ? 0 : treeDiv.offset().left;
+                        dy = self.pulling() ? 0 : treeDiv.offset().top;
+                        clearDrag(ev);
+                        bindWindowEvents();
+                    }
                 });
+
+                function clearDrag(ev){
+                    self.container().removeClass('simple-tree-drag');
+                    $body.removeClass("simple-tree-drag-body");
+                    if (dragObj)
+                        self._onDragStop(ev, dragObj);
+                    dragObj = null;
+                    helper && helper.remove();
+                    $win.unbind(namespace_ev);
+                }
+
+                function bindWindowEvents(){
+                    $win.bind(move_ev, function(ev){
+                        if (!firstMove){
+                            //create elements
+                            $body.addClass("simple-tree-drag-body");
+                            var helpers = createHelpers.call(self, ev);
+                            helper = helpers.helper;
+                            dragObj = helpers.dragObj;
+                            self.container().append(helper);
+                            if (dragObj && dragObj.dragNode != null){
+                                self._onDragStart(dragObj);
+                            }
+                            firstMove = true;
+                        } else if (dragObj){
+                            //moving elements
+                            var tEv = tree.getTouchEvent(ev);
+                            var left = tEv.clientX - dx;
+                            var top = tEv.clientY - dy;
+                            helper.css({left: left, top: top});
+                            self._onDrag(ev, helper, dragObj);
+                        }
+                    }).bind(end_ev, function(ev){
+                        clearDrag(ev);
+                    });
+                }
+
             },
             _onDragStop: function(ev, dragObj){
                 clearInterval(this._scrollTimer);
@@ -153,13 +195,13 @@ define(function (require) {
                 }
             },
 
-            onDragStart: function(dObj){
+            _onDragStart: function(dObj){
                 this.container().addClass("simple-tree-drag");
                 this._dragHelper.css({left:-100, top: -100});
                 this.container().append(this._dragHelper.show());
             },
 
-            onDrag: function(ev, ui, dragObj){
+            _onDrag: function(ev, ui, dragObj){
                 var self = this,
                     target = self._getElemByEv(ev),
                     getOnDragTree = self._getOnDragTree(target),
@@ -190,7 +232,7 @@ define(function (require) {
                     //set helper position
                     var tId = target.data("id"),
                         off = (this.pulling()) ? target.offset() : target.position(),
-                        uioff = (this.pulling()) ? ui.offset : ui.position,
+                        uioff = (this.pulling()) ? ui.offset() : ui.position(),
                         dhTop = 0,
                         dy = dragObj.height - (off.top - uioff.top - pdx);
 
@@ -278,15 +320,13 @@ define(function (require) {
             container: function(val){
                 if (val != undefined){
                     this._opt["container"] = val = $(val);
-                    this._tree._div.draggable("option", "containment", val);
-                    this._tree._div.draggable("option", "appendTo", val);
                 }
                 return this._opt["container"];
             },
             enable: function(val){
                 if (val != undefined){
                     this._opt["enable"] = val;
-                    (val) ? this.initDrag() : this._tree._div.data("draggable") && this._tree._div.draggable("destroy");
+                    (val) && this.initDrag();
                 }
                 var ret = (this._opt["enable"] !== false);
                 return ret;
@@ -301,8 +341,6 @@ define(function (require) {
             },
             destroy: function(){
                 this._dragHelper.remove();
-                if (this._tree._div.data("draggable"))
-                   this._tree._div.draggable("destroy");
                 this._opt = null;
                 this._tree = null;
             }

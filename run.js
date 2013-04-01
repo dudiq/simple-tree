@@ -89,7 +89,7 @@ define(function (require) {
                 dragEnd: function(dragNode, parentId, pos, source, destination){
                     console.dir(arguments);
 
-                    destination.moveNodeByPos(dragNode, parentId, pos, source);
+                    destination.moveNodeByPos(dragNode[0], parentId, pos, source);
                     console.dir(destination.getData());
                 }
             }
@@ -103,7 +103,7 @@ define(function (require) {
                     ]},
                                     {sort:true, plugins: {drag:{
                                         dragEnd: function(dragNode, id, pos, source, destination){
-                                            destination.moveNodeByPos(dragNode, id, pos, source);
+                                            destination.moveNodeByPos(dragNode[0], id, pos, source);
                                         }
                                     }}}
                 );
@@ -187,6 +187,7 @@ define(function (require) {
         });
 
         //how to create draggable from other elements
+        /*
         var dragPlugin = newTree.plugins()['drag'], dragObj;
         $("#forDrag").draggable({
             "cursorAt": {left: -20, top: 20},// top must be 20, for correct detect point
@@ -201,5 +202,6 @@ define(function (require) {
                 dragPlugin.onDragStop(dragObj);
             }
         });
+        */
     });
 });
