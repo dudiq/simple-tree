@@ -59,7 +59,12 @@ define(function (require) {
                     break;
                 }
             }
-            pos += decVal;
+            if (!isNaN(pos)){
+                pos += decVal;
+            } else {
+                //if pos is NaN, position is last, and no need to set
+                pos = nodes.length;
+            }
         }
         return pos;
     }
