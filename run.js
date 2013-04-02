@@ -77,7 +77,7 @@ define(function (require) {
         });
 
         //drag sample
-        var twoTree = jqSimpleTree($("#twoTree"), {title:"root", id:0, nodes:[
+        var twoTree = jqSimpleTree($("#twoTree"), {title:"root", id:0, canDragInto: false, nodes:[
             {title:"child", id: 5, nodes:[
                 {title:"chl3", id: 2},
                 {title: "ch4", id:3}

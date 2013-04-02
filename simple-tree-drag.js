@@ -146,11 +146,12 @@ define(function (require) {
                 clearInterval(this._scrollTimer);
                 this._dragHelper.hide();
                 if (typeof this._opt['dragEnd'] == "function"){
+                    var tree = this._tree;
                     var node = dragObj.dragNode, id = dragObj.lastId, posType = dragObj.pos, parentId, pos;
-                    var destEl = this._tree._getEventElem(ev);
+                    var destEl = tree._getEventElem(ev);
                     if (node != undefined && node.id != undefined ){
                         if (this.pulling() && typeof this._opt['dragPull'] == "function"){
-                            if (destEl.closest(this._tree._div).length == 0){
+                            if (destEl.closest(tree._div).length == 0){
                                 //if dropped in other container
                                 this._opt['dragPull'](node, dragObj.source, destEl);
                                 return;
@@ -159,15 +160,14 @@ define(function (require) {
                         if (node.id === id)
                             return;// drop if destination node == source node
                     }
-                    var canDrop = false;
-                    this._tree._traverseParents(id, function(parent){
+                    var canDrop = true;
+                    tree._traverseParents(id, function(parent){
                         if (node != undefined && node.id != undefined && parent.id === node.id) {
-                            canDrop = true;
+                            canDrop = false;
                             return false;
                         }
                     });
-                    if (canDrop) return;
-                    var parent = this._tree.getParentNode(id);
+                    var parent = tree.getParentNode(id);
                     if (posType == -3){
                         //is folder
                         pos = -1;
@@ -187,8 +187,15 @@ define(function (require) {
                             }
                         }
                     }
+
+                    var pNode = tree.getNode(parentId);
+                    if (pNode && pNode.canDragInto === false){
+                        canDrop = false;
+                    }
+                    if (!canDrop) return;
+
                     if (pos != undefined){
-                        if (this._tree._div.parent().has(destEl).length != 0){
+                        if (tree._div.parent().has(destEl).length != 0){
                             this._opt['dragEnd'](dragObj.nodes, parentId, pos, dragObj.source, dragObj.destination);
                         }
                     }
@@ -219,6 +226,7 @@ define(function (require) {
                         return;
                     }
                     dragObj.destination = dragTree;
+                    var lastId = dragObj.lastId;
                     if (target.hasClass("simple-tree-drag-line")){
                         if (dragTree._getNodesMap(dragObj.lastId) == undefined){
                             return;
@@ -234,7 +242,16 @@ define(function (require) {
                         off = (this.pulling()) ? target.offset() : target.position(),
                         uioff = (this.pulling()) ? ui.offset() : ui.position(),
                         dhTop = 0,
+                        isFolder = dragTree.isFolder(tId),
+                        overNode = dragTree.getNode(tId),
+                        canDragInto = (overNode['canDragInto'] !== false),
                         dy = dragObj.height - (off.top - uioff.top - pdx);
+
+                    if (!canDragInto){
+                        return;
+                    }
+
+                    var canDragIntoParent = (dragTree.getParentNode(tId)['canDragInto'] !== false);
 
                     if (dy >= dragObj.height / 2 ) {
                         dhTop = off.top + pdx + dragObj.height;
@@ -245,8 +262,8 @@ define(function (require) {
                     }
 
                     clearInterval(self._expandTimer);
-                    if (dragTree.isFolder(tId)){
-                        if (dragTree.getNode(tId)['canDragInto'] !== false) {
+                    if (isFolder){
+                        if (canDragInto) {
                             //use for folder
                             var dPos = dragObj.height * 0.33;
                             if(dy >=dPos && dy <= dPos * 2){
@@ -256,6 +273,12 @@ define(function (require) {
                                 self._openClosedFolder(dragTree, target);
                             }
                         }
+                    }
+
+                    if (!canDragIntoParent && (dragObj.pos == -1 || dragObj.pos == -2)){
+                        dragObj.pos = -3;
+                        dragObj.lastId = lastId;
+                        return;
                     }
 
                     self._dragHelper.css({left: off.left + 18, top: dhTop});

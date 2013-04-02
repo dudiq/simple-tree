@@ -523,7 +523,9 @@ define(function (require) {
                     var children = parentStruct.node.nodes;
                     for (var i = 0, l = children.length; i < l; i++){
                         if (children[i].id == id){
+                            self.clearSelection(id);
                             this._traverseNodes(children[i], function(cNode){
+                                self.clearSelection(cNode.id);
                                 delete self._nodesMap[cNode.id];
                             });
                             children.splice(i, 1);
@@ -767,13 +769,19 @@ define(function (require) {
                     selNode,
                     node;
                 (id != undefined) ? node = this._getNodesMap(id) : node = this._getNodesMap(env["selectedNodeId"]);
-                (node) ? this._removeSelectedStyleToEl(node['divs']) : null;
+                if (node) {
+                    this._removeSelectedStyleToEl(node['divs']);
+                    env["selectedNodeId"] = undefined;
+                }
 
                 if ($.isArray(selNodes)){
-                    for (var i = 0, l = selNodes.length; i < l; i++){
+                    for (var i = selNodes.length - 1, l = 0; i >= l; i--){
                         if (id == undefined || selNodes[i] == id){
                             selNode = this._getNodesMap(selNodes[i]);
-                            (selNode) ? this._removeSelectedStyleToEl(selNode['divs']) : null;
+                            if (selNode) {
+                                this._removeSelectedStyleToEl(selNode['divs']);
+                                selNodes.splice(i, 1);
+                            }
                         }
                     }
                 }
