@@ -169,7 +169,7 @@ define(function (require) {
                 }
             },
             getData: function(){
-                return clone(data);
+                return clone(this._data);
             },
             getDataLink: function(){
                 return this._data;
@@ -398,6 +398,8 @@ define(function (require) {
                         for (i = list.length - 1; i >= 0; i--){
                             //walk by reverse
                             if (callTraverse() === false){
+                                pDiv = false;
+                                //drop traverse
                                 break;
                             }
                         }
@@ -405,6 +407,8 @@ define(function (require) {
                         for (i = 0, l = list.length; i < l; i++){
                             //walk by default
                             if (callTraverse() === false){
+                                pDiv = false;
+                                //drop traverse
                                 break;
                             }
                         }
