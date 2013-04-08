@@ -12,6 +12,7 @@
 
 define(function (require) {
 
+    var $ = require('jquery');
 
     var isMobile = new RegExp("mobile", "i").test(navigator.userAgent),
         start_ev = ((isMobile) ? "touchstart" : "mousedown"),

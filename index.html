@@ -1,6 +1,5 @@
 <html>
 <head>
-    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 
     <script data-main="/main" type="text/javascript" src="requirejs/requirejs-min.js"></script>
     <script>
@@ -12,9 +11,14 @@
             waitSeconds: 15
         });
     </script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 
     <link type="text/css" href="simple-tree.css" rel="stylesheet"/>
     <style>
+        html, body{
+            margin: 0;
+            padding: 0;
+        }
         html, body, table
         {
             font-size: 12px;
@@ -75,6 +79,7 @@
         </td>
     </tr>
 </table>
+<div id="log"></div>
 
 
 </body>

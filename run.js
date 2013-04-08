@@ -77,15 +77,18 @@ define(function (require) {
         });
 
         //drag sample
-        var twoTree = jqSimpleTree($("#twoTree"), {title:"root", id:0, canDragInto: false, nodes:[
+        var twoTree = jqSimpleTree($("#twoTree"), {title:"root", id:0, nodes:[
             {title:"child", id: 5, nodes:[
-                {title:"chl3", id: 2},
+                {title:"ch4", id: 2},
                 {title: "ch4", id:3}
             ]},
-            {title:"ch2", id: 1, nodes: []}
+            {title:"ch55", id: 55, nodes: []},
+            {title:"ch44", id: 44, nodes: []},
+            {title:"ch4", id: 1, nodes: []}
         ]},
             {multiSelect: true, plugins:{drag: {
                 enable: true,
+                pulling: true,
                 dragEnd: function(dragNode, parentId, pos, source, destination){
                     console.dir(arguments);
 
@@ -203,5 +206,57 @@ define(function (require) {
             }
         });
         */
+
+
+
+        function callAsync(id){
+            var dfd = $.Deferred();
+            //var value = Math.random() * 100;
+            setTimeout(function(){
+                //console.log(id);
+                dfd.resolve();
+            }, 1000);
+            return dfd.promise();
+        }
+
+        function mass(arr){
+            var dfd = $.Deferred();
+            if (arr.length != 0){
+                var val = arr.shift();
+                val().done(function(){
+                    mass(arr);
+                }).fail(function(){
+                    dfd.reject();
+                });
+            } else {
+                dfd.resolve();
+            }
+            return dfd;
+        }
+
+        var arr = [];
+        for (var i = 0; i < 5; i++){
+            (function(id){
+                arr.push(function(){
+                    return callAsync(id);
+                });
+            })(i);
+        }
+
+        var dfd = mass(arr);
+
+        dfd.done(function(){
+            //console.log("done all");
+        }).fail(function(){
+            //console.log("fail all");
+        });
+
+        twoTree.traverseNodes(twoTree.getDataLink(), function(node){
+            if (node.title == "ch4"){
+                //console.log("test");
+                return false;
+            }
+        });
+
     });
 });

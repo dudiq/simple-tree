@@ -7,6 +7,7 @@
 * @licence: MIT http://www.opensource.org/licenses/mit-license.php
 **/
 define(function (require) {
+    var $ = require('jquery');
 
     var touchSupport = 'ontouchstart' in window.document;
     var namespace_ev = ".simple-tree-drag";
@@ -239,19 +240,30 @@ define(function (require) {
 
                     //set helper position
                     var tId = target.data("id"),
-                        off = (this.pulling()) ? target.offset() : target.position(),
-                        uioff = (this.pulling()) ? ui.offset() : ui.position(),
+                        pulling = this.pulling(),
+                        off = (pulling) ? target.offset() : target.position(),
+                        uioff = (pulling) ? ui.offset() : ui.position(),
                         dhTop = 0,
+                        dhTopNonPullDx = 0,
                         isFolder = dragTree.isFolder(tId),
                         overNode = dragTree.getNode(tId),
                         canDragInto = (overNode['canDragInto'] !== false),
-                        dy = dragObj.height - (off.top - uioff.top - pdx);
+                        dy;
+
+
+                    if (!pulling){
+                        dhTopNonPullDx = dragObj.height;
+                        off.top = off.top + dhTopNonPullDx;
+                    }
+
+                    dy = dragObj.height - (off.top - uioff.top - pdx);
 
                     if (!canDragInto){
                         return;
                     }
 
-                    var canDragIntoParent = (dragTree.getParentNode(tId)['canDragInto'] !== false);
+                    var canDragIntoNode = dragTree.getParentNode(tId);
+                    var canDragIntoParent = (canDragIntoNode && (canDragIntoNode['canDragInto'] !== false)) || false;
 
                     if (dy >= dragObj.height / 2 ) {
                         dhTop = off.top + pdx + dragObj.height;
@@ -265,7 +277,7 @@ define(function (require) {
                     if (isFolder){
                         if (canDragInto) {
                             //use for folder
-                            var dPos = dragObj.height * 0.33;
+                            var dPos = dragObj.height * 0.4;
                             if(dy >=dPos && dy <= dPos * 2){
                                 //folder
                                 dhTop = off.top + pdx + dragObj.height * 0.5 - dragObj.dhHeight * 0.5;
@@ -281,7 +293,7 @@ define(function (require) {
                         return;
                     }
 
-                    self._dragHelper.css({left: off.left + 18, top: dhTop});
+                    self._dragHelper.css({left: off.left + 18, top: dhTop - dhTopNonPullDx});
                 } else {
                     self._scrollDrag(ev.pageY, dragObj.treeHeight, dragObj.treeTop);
                 }
