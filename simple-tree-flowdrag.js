@@ -35,7 +35,7 @@ define(function (require) {
     var hLeft, hTop, hDim = {};
     function moveHelper(winEv){
         //moving elements
-        var hLeft = winEv.clientX + 5;
+        var hLeft = winEv.clientX + 15;
         var hTop = winEv.clientY - 30;
 
         (hLeft <= hDim.left) && (hLeft = hDim.left);
@@ -211,7 +211,7 @@ define(function (require) {
 
                 clearDrag();
 
-                treeDiv.bind(start_ev, function(ev){
+                treeDiv.unbind(start_ev).bind(start_ev, function(ev){
                     if (self.enable()){
                         firstMove = false;
                         clearDrag(ev);
