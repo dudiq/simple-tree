@@ -112,8 +112,8 @@ define(function (require) {
                 function clearDrag(){
                     dragNodes = [];
                     firstMove = false;
-                    //$body.removeClass("simple-tree-flowdrag-body");
-                    //treeDiv.removeClass("simple-tree-flowdrag");
+                    $body.removeClass("simple-tree-flowdrag-body");
+                    treeDiv.removeClass("simple-tree-flowdrag");
                     $win.unbind(namespace_ev);
                     stopDragging();
                     removeSelection();
