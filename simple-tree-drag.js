@@ -8,6 +8,7 @@
 **/
 define(function (require) {
     var $ = require('jquery');
+    var simpleTree = require('./simple-tree');
 
     var touchSupport = 'ontouchstart' in window.document;
     var namespace_ev = ".simple-tree-drag";
@@ -93,7 +94,6 @@ define(function (require) {
                 treeDiv.unbind(namespace_ev);
 
                 var firstMove = false;
-                var dranEndFlag = false;
                 var helper;
                 var dx = 0, dy = 0;
                 treeDiv.bind(start_ev, function(ev){
@@ -384,7 +384,7 @@ define(function (require) {
         return drag;
     };
 
-    //window['jqSimpleTree'].registerPlugin('drag', dragging);
+    simpleTree.registerPlugin('drag', dragging);
 
     return dragging;
 });

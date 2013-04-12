@@ -88,7 +88,7 @@ span.simple-tree-item-icon{
 }
 
 .simple-tree-last-td{
-    width: 100%;
+    /*width: 100%;*/
 }
 
 .simple-tree-bung{
@@ -97,42 +97,6 @@ span.simple-tree-item-icon{
 
 .simple-tree-item-sub-icon{
 
-}
-
-/*dragging plugin*/
-.simple-tree-drag-body{
-    -moz-user-select:none; -khtml-user-select:none; -webkit-user-select:none; user-select: none;
-    -webkit-tap-highlight-color: rgba(0,0,0,0);
-    -webkit-focus-ring-color:  rgba(0,0,0,0);
-    -webkit-appearance: none;
-    cursor: move;
-}
-.simple-tree-drag span, .simple-tree-drag div, .simple-tree-drag .simple-tree-folder .simple-tree-expand{
-    cursor: move;
-}
-
-.simple-tree-drag-el{
-    position: absolute;
-    cursor: move;
-    background-color: silver;
-    opacity: 0.8; filter:Alpha(Opacity=80);
-    left: -9999px;
-    top: -9999px;
-    margin-left: -20px;
-    margin-top: -20px;
-}
-.simple-tree-drag-cur{
-    width: 18px;
-    height: 18px;
-    display: inline-block;
-}
-
-.simple-tree-drag-line {
-    height: 1px; line-height: 1px; font-size:1px;
-    position: absolute;
-    background-color: yellow;
-    width: 36px;
-    border:1px solid gray;
 }
 
 .simple-tree-item-icon0 .simple-tree-item-icon{ width:0px; height:0px;}
@@ -187,3 +151,72 @@ span.simple-tree-item-icon{
 .simple-tree-item-icon49 .simple-tree-item-icon{ width:49px; height:49px;}
 .simple-tree-item-icon50 .simple-tree-item-icon{ width:50px; height:50px;}
 
+
+/*dragging plugin*/
+.simple-tree-drag-body{
+    -moz-user-select:none; -khtml-user-select:none; -webkit-user-select:none; user-select: none;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+    -webkit-focus-ring-color:  rgba(0,0,0,0);
+    -webkit-appearance: none;
+    cursor: move;
+}
+.simple-tree-drag span, .simple-tree-drag div, .simple-tree-drag .simple-tree-folder .simple-tree-expand{
+    cursor: move;
+}
+
+.simple-tree-drag-el{
+    position: absolute;
+    cursor: move;
+    background-color: silver;
+    opacity: 0.8; filter:Alpha(Opacity=80);
+    left: -9999px;
+    top: -9999px;
+    margin-left: -20px;
+    margin-top: -20px;
+}
+.simple-tree-drag-cur{
+    width: 18px;
+    height: 18px;
+    display: inline-block;
+}
+
+.simple-tree-drag-line {
+    height: 1px; line-height: 1px; font-size:1px;
+    position: absolute;
+    background-color: yellow;
+    width: 36px;
+    border:1px solid gray;
+}
+
+/*dragging plugin end*/
+.simple-tree-flowdrag-body{
+    -moz-user-select:none; -khtml-user-select:none; -webkit-user-select:none; user-select: none;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+    -webkit-focus-ring-color:  rgba(0,0,0,0);
+    -webkit-appearance: none;
+    cursor: move;
+}
+
+.simple-tree-flowdrag-body *{
+    cursor: move;
+}
+
+/*.simple-tree-flowdrag table.simple-tree-folder:hover + .simple-tree-container,*/
+.simple-tree-flowdrag .simple-tree-flowdrag-hover .simple-tree-title
+{
+    background-color: #ffe4b5;
+    color: #017072;
+}
+
+.simple-tree-flowdraw-helper{
+    position: absolute;
+    background-color: #ffe4b5;
+    color: #017072;
+    margin: 2px;
+    padding: 2px;
+    left: -9999px;
+    top: -9999px;
+    white-space: nowrap;
+}
+
+/*flowdrag plugin*/

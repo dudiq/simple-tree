@@ -2,6 +2,8 @@ define(function (require) {
     $(document).ready(function() {
 
         var jqSimpleTree = require("simple-tree");
+        var jqSimpleTreeDrag = require("simple-tree-drag");
+        var jqSimpleTreeFlowDrag = require("simple-tree-flowdrag");
 
         var simpleData = {title:"root", id:0,
             nodes:[
@@ -80,20 +82,20 @@ define(function (require) {
         var twoTree = jqSimpleTree($("#twoTree"), {title:"root", id:0, nodes:[
             {title:"child", id: 5, nodes:[
                 {title:"ch4", id: 2},
-                {title: "ch4", id:3}
+                {title: "ch42", id:3, canDrag: false}
             ]},
-            {title:"ch55", id: 55, nodes: []},
+            {title:"ch55", id: 55, nodes: [], canDragInto : false},
             {title:"ch44", id: 44, nodes: []},
             {title:"ch4", id: 1, nodes: []}
         ]},
-            {multiSelect: true, plugins:{drag: {
+            {multiSelect: true, plugins:{flowDrag: {
                 enable: true,
                 pulling: true,
                 dragEnd: function(dragNode, parentId, pos, source, destination){
                     console.dir(arguments);
 
-                    destination.moveNodeByPos(dragNode[0], parentId, pos, source);
-                    console.dir(destination.getData());
+                    //destination.moveNodeByPos(dragNode[0], parentId, pos, source);
+                    //console.dir(destination.getData());
                 }
             }
             }});
@@ -246,10 +248,11 @@ define(function (require) {
         var dfd = mass(arr);
 
         dfd.done(function(){
-            //console.log("done all");
+            console.log("done all");
         }).fail(function(){
-            //console.log("fail all");
+            console.log("fail all");
         });
+
 
         twoTree.traverseNodes(twoTree.getDataLink(), function(node){
             if (node.title == "ch4"){
@@ -257,6 +260,9 @@ define(function (require) {
                 return false;
             }
         });
+
+        var dfd = $.Deferred();
+
 
     });
 });

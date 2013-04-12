@@ -6,13 +6,13 @@
 * @author: dudiq
 * @licence: MIT http://www.opensource.org/licenses/mit-license.php
 *
-* if you don't what to use define method(was added for requirejs), just override it by closure, and defined variable in window. that's all.
-* and some code need to be refactored...
 **/
 
 define(function (require) {
 
     var $ = require('jquery');
+
+    var gPlugins = {};
 
     var isMobile = new RegExp("mobile", "i").test(navigator.userAgent),
         start_ev = ((isMobile) ? "touchstart" : "mousedown"),
@@ -824,7 +824,26 @@ define(function (require) {
                 var selNode = this.getSelectedNode();
                 return (selNode == undefined) ? undefined : selNode.id;
             },
-            selectNode: function(id, callEvent){
+            selectNodes: function(nodes, callEvent){
+                //nodes can be array of nodes, or array of ids
+                if ($.isArray(nodes) && nodes.length != 0){
+                    var isPlain = $.isPlainObject(nodes[0]);
+                    var self = this;
+
+                    function selectNode(node, ctrlPress){
+                        self.selectNode(isPlain ? node.id : node, callEvent, ctrlPress);
+                    }
+
+                    //drop selection from other files and select first item
+                    selectNode(nodes[0], false);
+
+                    //select others
+                    for (var i = 1, l = nodes.length; i < l; i++){
+                        selectNode(nodes[i], true);
+                    }
+                }
+            },
+            selectNode: function(id, callEvent, ctrlPressed){
                 if ($.isArray(id)){
                     for (var i = 0, l = id.length; i < l; i++){
                         this._selectNode(id[i], callEvent, true);
@@ -1016,11 +1035,6 @@ define(function (require) {
         } else {
             showError("plugin '" + name + "' already exists");
         }
-    };
-
-    //loading plugins
-    var gPlugins = {
-        "drag" : require("./simple-tree-drag")
     };
 
     return jqSimpleTree;
