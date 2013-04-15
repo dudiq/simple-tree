@@ -202,21 +202,27 @@ span.simple-tree-item-icon{
 }
 
 /*.simple-tree-flowdrag table.simple-tree-folder:hover + .simple-tree-container,*/
-.simple-tree-flowdrag .simple-tree-flowdrag-hover .simple-tree-title
-{
-    background-color: #ffe4b5;
-    color: #017072;
+.simple-tree-flowdrag .simple-tree-flowdrag-hover {
+    background-color: #DDD;
+    color: #000;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
 }
 
 .simple-tree-flowdraw-helper{
     position: absolute;
-    background-color: #ffe4b5;
-    color: #017072;
+    background-color: #8F8F99;
+    color: #EEE;
     margin: 2px;
-    padding: 2px;
+    padding: 2px 8px;
     left: -9999px;
     top: -9999px;
     white-space: nowrap;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    opacity: 0.8;
 }
 
 /*flowdrag plugin*/
