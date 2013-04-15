@@ -198,7 +198,7 @@ span.simple-tree-item-icon{
 }
 
 .simple-tree-flowdrag-body *{
-    cursor: move;
+    cursor: move !important;
 }
 
 /*.simple-tree-flowdrag table.simple-tree-folder:hover + .simple-tree-container,*/
@@ -225,4 +225,4 @@ span.simple-tree-item-icon{
     opacity: 0.8;
 }
 
-/*flowdrag plugin*/
+/*end flowdrag plugin*/

@@ -36,13 +36,13 @@ define(function (require) {
     function moveHelper(winEv){
         //moving elements
         var hLeft = winEv.clientX + 15;
-        var hTop = winEv.clientY - 30;
+        var hTop = winEv.clientY + 10;
 
-        (hLeft <= hDim.left) && (hLeft = hDim.left);
         (hLeft >= hDim.right) && (hLeft = hDim.right);
+        (hLeft <= hDim.left) && (hLeft = hDim.left);
 
-        (hTop <= hDim.top) && (hTop = hDim.top);
         (hTop >= hDim.bottom) && (hTop = hDim.bottom);
+        (hTop <= hDim.top) && (hTop = hDim.top);
 
         helper[0].style.left = hLeft - hDim.left + "px";
         helper[0].style.top = hTop - hDim.top + "px";
@@ -67,6 +67,27 @@ define(function (require) {
             }
         }
         return dragNodes;
+    }
+
+    function dragEnd(dragNodes, overId){
+        //check folders for drop into itself, and drop they
+        var ret = [];
+        var tree = this._tree;
+        for (var i = 0, l = dragNodes.length; i < l; i++){
+            var itemId = dragNodes[i].id;
+            var canDrop = (itemId != overId);
+            if (canDrop){
+                tree.traverseParents(overId, function(node){
+                    if (node.id == itemId){
+                        canDrop = false;
+                        return false;
+                    }
+                });
+            }
+            canDrop && (ret.push(dragNodes[i]));
+        }
+
+        this._opt.dragEnd && this._opt.dragEnd(ret, overId);
     }
 
     var dragging = function (tree, opt){
@@ -126,14 +147,10 @@ define(function (require) {
                     elFolder && elFolder.removeClass("simple-tree-flowdrag-hover");
                 }
 
-                function onDragStart(ev){
-                    helper.css({left: -9999, top: -9999});
-                    treeDiv.append(helper);
-                    $body.addClass("simple-tree-flowdrag-body");
-                    treeDiv.addClass("simple-tree-flowdrag");
-                    firstMove = true;
+                function collectDragNodes(ev){
                     var item = tree._getParentItemElement($(ev.target));
                     //check first over item
+                    dragNodes = getDragNodes.call(self);
                     if (item.length != 0){
                         var id = item.data("id");
                         var inside = false;
@@ -144,10 +161,24 @@ define(function (require) {
                             }
                         }
                         if (inside == false){
+                            //check for first selected item and drag items
                             tree.selectNode(id, false, ev.ctrlKey || ev.metaKey);
-                            dragNodes = getDragNodes.call(self);
-                            bindMouseOver();
                         }
+                    }
+                    dragNodes = getDragNodes.call(self);
+                }
+
+                function onDragStart(ev){
+                    helper.css({left: -9999, top: -9999});
+                    treeDiv.append(helper);
+                    $body.addClass("simple-tree-flowdrag-body");
+                    treeDiv.addClass("simple-tree-flowdrag");
+                    firstMove = true;
+                    collectDragNodes(ev);
+                    if (dragNodes.length != 0){
+                        bindMouseOver();
+                    } else {
+                        canDrag = false;
                     }
                 }
 
@@ -162,7 +193,7 @@ define(function (require) {
                             left : treeDiv.offset().left,
                             top : treeDiv.offset().top,
                             bottom : treeDiv.offset().top + treeDiv.height() - helper.outerHeight(),
-                            right : treeDiv.offset().left + treeDiv.width() - helper.outerWidth()
+                            right : treeDiv.offset().left + treeDiv.width()// - helper.outerWidth()
                         };
 
                         treeDiv.bind("mouseover" + namespace_ev, function(ev){
@@ -171,13 +202,16 @@ define(function (require) {
                             plane = el.closest(".simple-tree-container");
                             elFolder = el.closest(".simple-tree-folder");
                             overId = undefined;
+                            clearInterval(openClosedFolderTimer);
                             if (elFolder.length == 0){
                                 //drop area for children
-//                            tId = plane.data("id");
-//                            if (checkDragInto.call(self, tId)){
-//                                plane.addClass("simple-tree-flowdrag-hover");
-//                                overId = tId;
-//                            }
+                                tId = plane.data("id");
+                                if (checkDragInto.call(self, tId)){
+                                    elFolder = plane.prev();
+                                    elFolder.addClass("simple-tree-flowdrag-hover");
+                                    //plane.addClass("simple-tree-flowdrag-hover");
+                                    overId = tId;
+                                }
                             } else {
                                 plane.removeClass("simple-tree-flowdrag-hover");
                                 tId = elFolder.data("id");
@@ -191,22 +225,38 @@ define(function (require) {
                     }
                 }
 
-                function bindWindowEvents(){
-                    dragNodes = getDragNodes.call(self);
-                    bindMouseOver();
-                    $win.bind(move_ev, function(ev){
-                        if (!firstMove){
-                            //create elements
-                            onDragStart(ev);
-                        } else if (canDrag){
-                            moveHelper(ev);
+                function checkClick(ev){
+                    var item = tree._getParentItemElement($(ev.target));
+                    var ret = (item.length != 0);
+                    if (item.length != 0){
+
+                        var node = tree.getNode(item.data("id"));
+                        if (!node){
+                            ret = false;
                         }
-                    }).bind(end_ev, function(ev){
-                            if (firstMove && canDrag && overId !== undefined){
-                                self._opt.dragEnd && self._opt.dragEnd(dragNodes, overId);
+                    }
+                    return ret;
+                }
+
+                function bindWindowEvents(ev){
+                    //check target for exists in dragNodes
+                    if (checkClick.call(self, ev)){
+                        $win.bind(move_ev, function(ev){
+                            if (!firstMove){
+                                //create elements
+                                onDragStart(ev);
+                            } else if (canDrag){
+                                moveHelper(ev);
                             }
-                            clearDrag(ev);
-                    });
+                        }).bind(end_ev, function(ev){
+                                if (firstMove && canDrag && overId !== undefined){
+                                    dragEnd.call(self, dragNodes, overId);
+                                }
+                                clearDrag(ev);
+                            });
+                    } else {
+                        clearDrag(ev);
+                    }
                 }
 
                 clearDrag();

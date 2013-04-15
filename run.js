@@ -80,25 +80,29 @@ define(function (require) {
 
         //drag sample
         var twoTree = jqSimpleTree($("#twoTree"), {title:"root", id:0, nodes:[
-            {title:"child", id: 5, nodes:[
-                {title:"ch4", id: 2},
-                {title: "ch42", id:3, canDrag: false}
+            {title:"child2", id: 5, nodes:[
+//                {title:"ch4", id: 2, nodes:[]},
+                {title: "ch42", id:3, canDrag: false, nodes:[]}
             ]},
             {title:"ch55", id: 55, nodes: [], canDragInto : false},
-            {title:"ch44", id: 44, nodes: []},
+            {title:"ch44ch44ch44ch44ch44ch44ch44", id: 44, nodes: []},
             {title:"ch4", id: 1, nodes: []}
         ]},
             {multiSelect: true, plugins:{flowDrag: {
                 enable: true,
                 pulling: true,
                 dragEnd: function(dragNode, parentId, pos, source, destination){
-                    console.dir(arguments);
+                    console.log(dragNode, twoTree.getNode(parentId));
 
                     //destination.moveNodeByPos(dragNode[0], parentId, pos, source);
                     //console.dir(destination.getData());
                 }
             }
             }});
+        $(twoTree).bind(jqSimpleTree.onClick, function(){
+            console.log("click");
+        });
+
 
         var hugeTree = jqSimpleTree($("#hugeTree"), {title:"root", id:0, hideNodeTitle: true,
                     nodes:[{title:"f3", id: 4, icon: "http://cs5560.vk.com/u4616647/a_8b9d09a0.jpg",  nodes:[{title:"chl5", id: 2}, {title: "ch4", id:3}]},

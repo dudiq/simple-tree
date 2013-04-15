@@ -680,12 +680,10 @@ define(function (require) {
                             $(tree).trigger(jqSimpleTree.onMouseOut, [clickEl.data("id")]);
                         }
                     }
+                }).bind(move_ev + ".simpleTree", function(){
+                    canCallEndEv = false;
                 });
-                if (isMobile){
-                    this._div.bind(move_ev + ".simpleTree", function(){
-                        canCallEndEv = false;
-                    });
-                }
+
             },
             _setSelectedStyleToEl: function(el){
                 var selCss = "simple-tree-item-selected",
