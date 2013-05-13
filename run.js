@@ -82,7 +82,13 @@ define(function (require) {
         var twoTree = jqSimpleTree($("#twoTree"), {title:"root", id:0, nodes:[
             {title:"child2", id: 5, nodes:[
 //                {title:"ch4", id: 2, nodes:[]},
-                {title: "ch42", id:3, canDrag: false, nodes:[]}
+                {title: "ch42", id:3, canDrag: false, nodes:[
+                    {title:"ch46", nodes:[
+                        {title:"ch47", nodes:[
+                            {title:"ch4 file"}
+                        ]}
+                    ]}
+                ]}
             ]},
             {title:"ch55", id: 55, nodes: [], canDragInto : false},
             {title:"ch44ch44ch44ch44ch44ch44ch44", id: 44, nodes: []},
@@ -152,6 +158,9 @@ define(function (require) {
 
         $("#newNode").click(function(){
             hugeTree.addNode(4,{title:"ch1"});
+            hugeTree.setNodeBung(4, "test", function(){
+                console.log("Test");
+            });
         });
 
         $("#huge").click(function(){

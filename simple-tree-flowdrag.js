@@ -69,21 +69,27 @@ define(function (require) {
         return dragNodes;
     }
 
+    function checkNesting(overId, itemId){
+        var canDrop = (itemId != overId);
+        if (canDrop){
+            this._tree.traverseParents(overId, function(node){
+                if (node.id == itemId){
+                    canDrop = false;
+                    return false;
+                }
+            });
+        }
+        return canDrop;
+    }
+
     function dragEnd(dragNodes, overId){
         //check folders for drop into itself, and drop they
         var ret = [];
         var tree = this._tree;
+        var canDrop;
         for (var i = 0, l = dragNodes.length; i < l; i++){
             var itemId = dragNodes[i].id;
-            var canDrop = (itemId != overId);
-            if (canDrop){
-                tree.traverseParents(overId, function(node){
-                    if (node.id == itemId){
-                        canDrop = false;
-                        return false;
-                    }
-                });
-            }
+            canDrop = checkNesting.call(this, overId, itemId);
             canDrop && (ret.push(dragNodes[i]));
         }
 

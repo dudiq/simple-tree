@@ -318,6 +318,18 @@ define(function (require) {
                     newLine,
                     canAdd = true,
                     self = this;
+
+                function createNewMapItem(node, divs, nodesContainer, parentId, bung){
+                    var struct = {
+                        node: node,
+                        divs: divs,
+                        nodesContainer: nodesContainer,
+                        parentId: parentId,
+                        bung: bung
+                    };
+                    return struct;
+                }
+
                 this._traverseNodes(data, function(node, pdiv, level) {
                     if (sort && node.nodes){
                         sortNodes(node.nodes);
@@ -330,7 +342,7 @@ define(function (require) {
                         return false;
                     } else {
                         newLine = self._createLine(node);
-                        nodesMap[node.id] = {node: node, divs: newLine.itemDiv, nodesContainer: newLine.ul, parentId: pdiv.data("id")};
+                        nodesMap[node.id] = createNewMapItem(node, newLine.itemDiv, newLine.ul, pdiv.data("id"), {});
                         pdiv.append(newLine.itemDiv, newLine.ul);
                     }
                     return newLine.ul;
@@ -650,9 +662,17 @@ define(function (require) {
                         if (isExpandClick && !el.hasClass("simple-tree-no-child") && parentEl.hasClass("simple-tree-folder")){
                             self._expandCollapseNode(el);
                         }
-                        if (!isExpandClick && parentEl != null && parentEl.length !=0){
+                        if (!isExpandClick && parentEl && parentEl.length !=0){
                             self._onSelect(parentEl, true, isCtrlPressed(ev));
-                            $(tree).trigger(jqSimpleTree.onClick, [parentEl.data("id"), el, parentEl]);
+                            var itemId = parentEl.data("id");
+                            if (el.hasClass('simple-tree-bung')) {
+                                var map = self._getNodesMap(itemId);
+                                if (map.bung && map.bung.action){
+                                    map.bung.action();
+                                }
+                            } else {
+                                $(tree).trigger(jqSimpleTree.onClick, [itemId, el, parentEl]);
+                            }
                         }
                     }
                 }).bind("dblclick.simpleTree", function(ev){
@@ -895,9 +915,14 @@ define(function (require) {
             getNodeClass: function(id){
                 return this._getNodeCustomCss(id, 'cssClass');
             },
-            setNodeBungClass: function(id, val){
+            setNodeBung: function(id, css, action){
                 var map = this._getNodesMap(id);
-                this._setNodeCustomCss(map, map.divs.find(".simple-tree-bung"), 'bungClass', val);
+                var bung = {
+                    css: css,
+                    action: action
+                };
+                map.bung = bung;
+                this._setNodeCustomCss(map, map.divs.find(".simple-tree-bung"), 'bungClass', bung.css);
             },
             getNodeBungClass: function(id){
                 return this._getNodeCustomCss(id, 'bungClass');
