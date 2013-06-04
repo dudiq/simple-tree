@@ -1,37 +1,27 @@
 <html>
 <head>
-
+    <title>jQuery SimpleTree Demo</title>
     <script data-main="/main" type="text/javascript" src="requirejs/requirejs-min.js"></script>
-    <script>
-        require.config({
-            baseUrl: "/js/AC/simple-libs/simple-tree/",
-            paths: {
-                "some": "some/v1.0"
-            },
-            waitSeconds: 15
-        });
-    </script>
     <script type="text/javascript" src="jquery-1.9.1.js"></script>
 
     <link type="text/css" href="simple-tree.css" rel="stylesheet"/>
     <style>
-        html, body{
-            margin: 0;
-            padding: 0;
-        }
-        html, body, table
-        {
-            font-size: 12px;
-            font-family: Tahoma, Verdana,"Lucinda Console","Arial","Helvetica","sans-serif";
+        html, body, table{
+            font: 12px Tahoma, Verdana,"Lucinda Console","Arial","Helvetica","sans-serif";
         }
         .divTree{
-            width:300px; height: 300px;
+            width: 300px;
+            height: 300px;
             border: 1px solid gray;
             display: block;
             margin-top: 10px;
             position: relative;
         }
-        .btn{
+        #demos > div{
+            float: left;
+            margin: 0 20px 30px 0;
+        }
+        #demos a{
             cursor: pointer;
             -moz-user-select:none; -khtml-user-select:none; -webkit-user-select:none; user-select: none;
             padding: 4px;
@@ -39,48 +29,62 @@
             border-radius: 4px;
             width: 100px;
         }
-        span.btn:hover{
+        #demos a:hover{
             background-color: silver;
         }
-
-        table.testCss:hover{
+        .testCss:hover{
             background: red;
         }
+        #forDrag{
+            width: 100px;
+            height: 20px;
+            background: gray;
+            border: 1px solid gray;
+        }
+        .clearfix {
+          *zoom: 1;
+        }
+        .clearfix:before,
+        .clearfix:after {
+          display: table;
+          content: "";
+          line-height: 0;
+        }
+        .clearfix:after {
+          clear: both;
+        }
     </style>
+
 </head>
 <body>
-<table style="position: absolute; top: 40px;">
-    <tr>
-        <td>
-            simple
-            <span id="init" class="btn">init</span>
-            <span id="test" class="btn">test</span>
-            <span id="remove" class="btn">remove</span>
-            <span id="rchild" class="btn">remove children</span>
-            <div id="simpleTree" class="divTree" ></div>
-        </td>
-        <td>
-            two
-            <span id="disableDrag" class="btn">disableDrag</span>
-            <div id="twoTree" class="divTree" style="width: 150px;"></div>
-        </td>
-        <td>
-            huge
-            <span id="focusNode" class="btn">focus node</span>
-            <span id="createhuge" class="btn">create huge</span>
-            <span id="huge" class="btn">huge</span><br>
-            <span id="newNode" class="btn">new node</span><br>
-            <div id="hugeTree" class="divTree" ></div> <!-- style="position: absolute; left: 348px; top: 500px;"  -->
-        </td>
-    </tr>
-    <tr>
-        <td>
-            <div id="forDrag" style="width:100px; height: 20px; background: gray; border: 1px solid gray;"></div>
-        </td>
-    </tr>
-</table>
-<div id="log"></div>
 
+    <div id="demos" class="clearfix">
+        <div>
+            <h3>simple</h3>
+            <a id="init">init</a>
+            <a id="test">test</a>
+            <a id="remove">remove</a>
+            <a id="rchild">remove children</a>
+            <div id="simpleTree" class="divTree"></div>
+        </div>
+
+        <div>
+            <h3>two</h3>
+            <a id="disableDrag">disableDrag</a>
+            <div id="twoTree" class="divTree"></div>
+        </div>
+
+        <div>
+            <h3>huge</h3>
+            <a id="focusNode">focus node</a>
+            <a id="createhuge">create huge</a>
+            <a id="huge">huge</a>
+            <a id="newNode">new node</a>
+            <div id="hugeTree" class="divTree" ></div>
+        </div>
+    </div>
+
+    <div id="forDrag"></div>
 
 </body>
 </html>
