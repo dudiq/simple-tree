@@ -48,7 +48,7 @@
         }
     </style>
 </head>
-<body>
+<body unselectable="on">
 <table style="position: absolute; top: 40px;">
     <tr>
         <td>
@@ -78,8 +78,26 @@
             <div id="forDrag" style="width:100px; height: 20px; background: gray; border: 1px solid gray;"></div>
         </td>
     </tr>
+    <tr><td>
+        <div style="user-select:none">
+            This text shouldn't be selectable. user-select:none
+        </div>
+        <div style="-moz-user-select:none">
+            This text shouldn't be selectable. -moz-user-select:none
+        </div>
+        <div style="-o-user-select:none">
+            This text shouldn't be selectable. -o-user-select:none
+        </div>
+        <div unselectable="on">
+            This text shouldn't be selectable. unselectable = 'on'
+        </div>
+
+    </td></tr>
 </table>
 <div id="log"></div>
+
+<iframe style="top: 554px; left: 200px; position: absolute;" src="http://google.ru"></iframe>
+
 
 
 </body>

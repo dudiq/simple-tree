@@ -85,14 +85,18 @@ define(function (require) {
                 {title: "ch42", id:3, canDrag: false, nodes:[
                     {title:"ch46", nodes:[
                         {title:"ch47", nodes:[
-                            {title:"ch4 file"}
+                            {title:"ch4 file"},
+                            {title:"c46 file"}
                         ]}
                     ]}
                 ]}
             ]},
             {title:"ch55", id: 55, nodes: [], canDragInto : false},
             {title:"ch44ch44ch44ch44ch44ch44ch44", id: 44, nodes: []},
-            {title:"ch4", id: 1, nodes: []}
+            {title:"c89", id: 1, nodes: [
+                {title: "h5"},
+                {title: "h6"}
+            ]}
         ]},
             {multiSelect: true, plugins:{flowDrag: {
                 enable: true,

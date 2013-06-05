@@ -260,7 +260,7 @@ define(function (require) {
                     //check target for exists in dragNodes
                     if (checkClick.call(self, ev)){
                         $win.bind(move_ev, function(ev){
-                            if (!firstMove){
+                            if (!firstMove && !ev.shiftKey){
                                 //create elements
                                 onDragStart(ev);
                             } else if (canDrag){

@@ -109,6 +109,10 @@ define(function (require) {
         return (ev) ? ev.ctrlKey || ev.metaKey: false;
     }
 
+    function isShiftPressed(ev){
+        return (ev) ? ev.shiftKey : false;
+    }
+
     //basic
     function jqSimpleTree(div, data, opt) {
 
@@ -663,7 +667,7 @@ define(function (require) {
                             self._expandCollapseNode(el);
                         }
                         if (!isExpandClick && parentEl && parentEl.length !=0){
-                            self._onSelect(parentEl, true, isCtrlPressed(ev));
+                            self._onSelect(parentEl, true, isCtrlPressed(ev), isShiftPressed(ev));
                             var itemId = parentEl.data("id");
                             if (el.hasClass('simple-tree-bung')) {
                                 var map = self._getNodesMap(itemId);
@@ -671,7 +675,7 @@ define(function (require) {
                                     map.bung.action();
                                 }
                             } else {
-                                $(tree).trigger(jqSimpleTree.onClick, [itemId, el, parentEl]);
+                                $(tree).trigger(jqSimpleTree.onClick, [itemId, el, parentEl, isCtrlPressed(ev), isShiftPressed(ev)]);
                             }
                         }
                     }
@@ -718,7 +722,52 @@ define(function (require) {
                 var selCss = "simple-tree-item-selected";
                 el.removeClass(selCss).find(".simple-tree-title").css({border:"", "background-color":""});
             },
-            _onSelect: function(el, callEvent, ctrlPressed){
+            _collectNodesByShiftKey: function(startId, endId){
+                var self = this,
+                    env = this._treeEnv,
+                    firstNode = this._getNodesMap(startId),
+                    endNode = this._getNodesMap(endId),
+                    selNodes = env["selectedNodesId"] || [];
+
+                if ((firstNode.divs.offset().top > endNode.divs.offset().top)){
+                    var tmp = firstNode;
+                    firstNode = endNode;
+                    endNode = tmp;
+                    tmp = null;
+                }
+
+                firstNode = firstNode.node.id;
+                endNode = endNode.node.id;
+
+                var collectIds = [];
+                var canPush = false;
+                this._traverseNodes(this.getRootNode(), function(node){
+                    if (node.id == firstNode){
+                        canPush = true;
+                    }
+
+                    canPush && (node.closed !==false) && collectIds.push(node.id);
+
+                    if (node.id == endNode){
+                        return false;
+                    }
+                });
+
+                // deselect old nodes
+                var i, l;
+                for (i = 0, l = selNodes.length; i < l; i++){
+                    this._removeSelectedStyleToEl(this._getNodesMap(selNodes[i]).divs);
+                }
+
+                //select new nodes
+                for (i = 0, l = collectIds.length; i < l; i++){
+                    this._setSelectedStyleToEl(this._getNodesMap(collectIds[i]).divs);
+                }
+
+                env["selectedNodesId"] = collectIds;
+
+            },
+            _onSelect: function(el, callEvent, ctrlPressed, shiftPressed){
                 if (!this.enable()) return;
                 var env = this._treeEnv;
                 (!env["selectedNodesId"]) ? env["selectedNodesId"] = [] : null;
@@ -727,22 +776,34 @@ define(function (require) {
                     oldSelId = env["selectedNodeId"],
                     selNodes = env["selectedNodesId"],
                     selId = env["selectedNodeId"] = el.data("id");
-                if (ctrlPressed && this.multiSelect()){
-                    //multi click
-                    if (el.hasClass("simple-tree-item-selected")){
-                        for (var i = 0, l = selNodes.length; i < l; i++){
-                            if (selNodes[i] == selId){
-                                selNodes.splice(i, 1);
-                                break;
+
+                if (this.multiSelect() && (ctrlPressed || shiftPressed)){
+                    if (ctrlPressed){
+                        //multi click
+                        if (el.hasClass("simple-tree-item-selected")){
+                            for (var i = 0, l = selNodes.length; i < l; i++){
+                                if (selNodes[i] == selId){
+                                    selNodes.splice(i, 1);
+                                    break;
+                                }
                             }
+                            this._removeSelectedStyleToEl(el);
+                        } else {
+                            selNodes.push(selId);
+                            this._setSelectedStyleToEl(el);
                         }
-                        this._removeSelectedStyleToEl(el);
+                    }
+
+                    if (shiftPressed){
+                        this._collectNodesByShiftKey(env.shiftSelectedId || oldSelId, selId);
                     } else {
-                        selNodes.push(selId);
-                        this._setSelectedStyleToEl(el);
+                        console.log("no pressed shift");
+                        env.shiftSelectedId = selId;
                     }
                 } else {
                     //single click
+                    console.log("single", shiftPressed);
+                    env.shiftSelectedId = selId;
                     env["selectedNodesId"] = [selId];
                     this._div.find("table."+selCss).each(function(){
                         self._removeSelectedStyleToEl($(this));
@@ -861,7 +922,7 @@ define(function (require) {
                     }
                 }
             },
-            selectNode: function(id, callEvent, ctrlPressed){
+            selectNode: function(id, callEvent, ctrlPressed, shiftPressed){
                 if ($.isArray(id)){
                     for (var i = 0, l = id.length; i < l; i++){
                         this._selectNode(id[i], callEvent, true);
@@ -870,11 +931,11 @@ define(function (require) {
                     this._selectNode.apply(this, arguments);
                 }
             },
-            _selectNode: function(id, callEvent, ctrlPressed){
+            _selectNode: function(id, callEvent, ctrlPressed, shiftPressed){
                 var map = this._getNodesMap(id);
                 if (map) {
                     var divs = map['divs'];
-                    this._onSelect($(divs[0]), callEvent, ctrlPressed);
+                    this._onSelect($(divs[0]), callEvent, ctrlPressed, shiftPressed);
                 }
             },
             isFolder: function(id){
