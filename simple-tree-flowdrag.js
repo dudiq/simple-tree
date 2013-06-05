@@ -16,7 +16,6 @@ define(function (require) {
     var move_ev = (touchSupport ? 'touchmove' : 'mousemove') + namespace_ev;
     var end_ev = (touchSupport ? 'touchend' : 'mouseup') + namespace_ev;
 
-
     var openClosedFolderTimer;
     function openClosedFolder(tree, target){
         clearInterval(openClosedFolderTimer);
@@ -94,6 +93,18 @@ define(function (require) {
         }
 
         this._opt.dragEnd && this._opt.dragEnd(ret, overId);
+    }
+
+    var iframeNamespace = namespace_ev + "iframe";
+    function iframeFix(callback){
+        var iframes = $("iframe");
+
+        iframes.each(function(index, el){
+            $(el.contentWindow.document.body).off(iframeNamespace).on("mouseup" + iframeNamespace, function(){
+                $(this).off(iframeNamespace);
+                callback();
+            });
+        });
     }
 
     var dragging = function (tree, opt){
@@ -194,6 +205,7 @@ define(function (require) {
                     if (canDrag){
                         var hText = (dragNodes.length == 1) ? dragNodes[0].title : dragNodes[0].title + " + " + (dragNodes.length - 1);
                         helper.html(hText);
+                        iframeFix(clearDrag);
 
                         hDim = {
                             left : treeDiv.offset().left,
@@ -258,10 +270,10 @@ define(function (require) {
                                 if (firstMove && canDrag && overId !== undefined){
                                     dragEnd.call(self, dragNodes, overId);
                                 }
-                                clearDrag(ev);
+                                clearDrag();
                             });
                     } else {
-                        clearDrag(ev);
+                        clearDrag();
                     }
                 }
 
@@ -270,9 +282,13 @@ define(function (require) {
                 treeDiv.unbind(start_ev).bind(start_ev, function(ev){
                     if (self.enable()){
                         firstMove = false;
-                        clearDrag(ev);
+                        clearDrag();
                         bindWindowEvents(ev);
+
                     }
+                    //drop selection
+                    ev.preventDefault();
+                    return false;
                 });
 
             },
