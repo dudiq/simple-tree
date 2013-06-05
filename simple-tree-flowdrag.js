@@ -231,7 +231,6 @@ define(function (require) {
                                     overId = tId;
                                 }
                             } else {
-                                plane.removeClass("simple-tree-flowdrag-hover");
                                 tId = elFolder.data("id");
                                 if (checkDragInto.call(self, tId, dragNodes)){
                                     elFolder.addClass("simple-tree-flowdrag-hover");
