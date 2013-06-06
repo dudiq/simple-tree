@@ -797,12 +797,10 @@ define(function (require) {
                     if (shiftPressed){
                         this._collectNodesByShiftKey(env.shiftSelectedId || oldSelId, selId);
                     } else {
-                        console.log("no pressed shift");
                         env.shiftSelectedId = selId;
                     }
                 } else {
                     //single click
-                    console.log("single", shiftPressed);
                     env.shiftSelectedId = selId;
                     env["selectedNodesId"] = [selId];
                     this._div.find("table."+selCss).each(function(){
