@@ -227,7 +227,7 @@ define(function (require) {
                                 if (checkDragInto.call(self, tId)){
                                     elFolder = plane.prev();
                                     elFolder.addClass("simple-tree-flowdrag-hover");
-                                    //plane.addClass("simple-tree-flowdrag-hover");
+                                    plane.addClass("simple-tree-flowdrag-hover");
                                     overId = tId;
                                 }
                             } else {
