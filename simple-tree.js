@@ -296,6 +296,8 @@ define(function (require) {
                         "<td><span class='simple-tree-title' "+ alt +">" + title + "</span></td><td class='simple-tree-last-td'><span class='simple-tree-bung " + bungClass + "'>&nbsp;</span></td></tr></table>"),
                     ul = (isFolder) ? this._getNewContainerEl(node.id) : undefined;
 
+                this._opt["showTitle"] && itemDiv.attr("title", title);
+
                 (isClosed && ul) ? ul.hide() : null;
                 if (node.hideNodeTitle === true) {
                     itemDiv.hide();
@@ -396,11 +398,19 @@ define(function (require) {
                     params,
                     self = this,
                     reverse = opt.reverse;
+
+
                 if ($.isArray(node)) {
                     list = node;
                     pDiv = div;
                 } else {
                     pDiv = callback.call(this, node, div, level);
+                    var callTraverseOpt = opt.callTraverse;
+                    delete opt['callTraverse'];
+                    if (callTraverseOpt === false){
+                        //drop calling traverse only for parent node
+                        list = undefined;
+                    }
                 }
                 if (list != undefined && pDiv !== false) {
                     var i = 0, l = list.length;
@@ -741,17 +751,25 @@ define(function (require) {
 
                 var collectIds = [];
                 var canPush = false;
+                var opt = {};
                 this._traverseNodes(this.getRootNode(), function(node){
                     if (node.id == firstNode){
                         canPush = true;
                     }
 
-                    canPush && (node.closed !==false) && collectIds.push(node.id);
+                    if (canPush){
+                        canPush && collectIds.push(node.id);
+                        if (node.closed){
+                            opt.callTraverse = false;
+                        }
+                    }
+
+
 
                     if (node.id == endNode){
                         return false;
                     }
-                });
+                }, opt);
 
                 // deselect old nodes
                 var i, l;

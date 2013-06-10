@@ -95,18 +95,6 @@ define(function (require) {
         this._opt.dragEnd && this._opt.dragEnd(ret, overId);
     }
 
-    var iframeNamespace = namespace_ev + "iframe";
-    function iframeFix(callback){
-        var iframes = $("iframe");
-
-        iframes.each(function(index, el){
-            $(el.contentWindow.document.body).off(iframeNamespace).on("mouseup" + iframeNamespace, function(){
-                $(this).off(iframeNamespace);
-                callback();
-            });
-        });
-    }
-
     var dragging = function (tree, opt){
         var drag = {
             _tree: null,
@@ -205,7 +193,6 @@ define(function (require) {
                     if (canDrag){
                         var hText = (dragNodes.length == 1) ? dragNodes[0].title : dragNodes[0].title + " + " + (dragNodes.length - 1);
                         helper.html(hText);
-                        iframeFix(clearDrag);
 
                         hDim = {
                             left : treeDiv.offset().left,
@@ -257,8 +244,16 @@ define(function (require) {
 
                 function bindWindowEvents(ev){
                     //check target for exists in dragNodes
+                    var which = ev.which;
                     if (checkClick.call(self, ev)){
                         $win.bind(move_ev, function(ev){
+
+                            if (which != ev.which){
+                                //hack for iframe
+                                clearDrag();
+                                return false;
+                            }
+
                             if (!firstMove && !ev.shiftKey){
                                 //create elements
                                 onDragStart(ev);
@@ -270,7 +265,8 @@ define(function (require) {
                                     dragEnd.call(self, dragNodes, overId);
                                 }
                                 clearDrag();
-                            });
+                        });
+
                     } else {
                         clearDrag();
                     }

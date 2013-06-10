@@ -24,6 +24,7 @@ define(function (require) {
                         }
                     },
                 indent:5,
+                showTitle:true,
                 multiSelect: true
                 }
         );
@@ -281,5 +282,27 @@ define(function (require) {
         var dfd = $.Deferred();
 
 
+        function myPrivateFunction() {
+            // Setting some stuff on the instance
+            self.publicAttribute1 = 2;
+        }
+
+        var myObject = function () {
+            var self = this;
+
+            self.publicAttribute1 = 10;
+            self.publicAttribute2 = '5';
+
+        };
+
+        myObject.prototype.instanceMethod = function () {
+            // Simple function call without any use of `call` or `apply`
+            myPrivateFunction();
+        };
+
+
+        var test = new myObject();
+
+        test.instanceMethod();
     });
 });
