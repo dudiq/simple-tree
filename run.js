@@ -102,6 +102,7 @@ define(function (require) {
             {multiSelect: true, plugins:{flowDrag: {
                 enable: true,
                 pulling: true,
+                treeBorderLimit: true,
                 dragEnd: function(dragNode, parentId, pos, source, destination){
                     console.log(dragNode, twoTree.getNode(parentId));
 

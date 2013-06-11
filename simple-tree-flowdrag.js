@@ -32,19 +32,21 @@ define(function (require) {
 
     var helper = $("<div class='simple-tree-flowdraw-helper'/>");
     var hLeft, hTop, hDim = {};
-    function moveHelper(winEv){
+    function moveHelper(winEv, options){
         //moving elements
         var hLeft = winEv.clientX + 15;
         var hTop = winEv.clientY + 10;
 
-        (hLeft >= hDim.right) && (hLeft = hDim.right);
-        (hLeft <= hDim.left) && (hLeft = hDim.left);
+        if (options.treeBorderLimit){
+            (hLeft >= hDim.right) && (hLeft = hDim.right);
+            (hLeft <= hDim.left) && (hLeft = hDim.left);
 
-        (hTop >= hDim.bottom) && (hTop = hDim.bottom);
-        (hTop <= hDim.top) && (hTop = hDim.top);
+            (hTop >= hDim.bottom) && (hTop = hDim.bottom);
+            (hTop <= hDim.top) && (hTop = hDim.top);
+        }
 
-        helper[0].style.left = hLeft - hDim.left + "px";
-        helper[0].style.top = hTop - hDim.top + "px";
+        helper[0].style.left = hLeft + "px";
+        helper[0].style.top = hTop + "px";
     }
 
 
@@ -175,7 +177,9 @@ define(function (require) {
 
                 function onDragStart(ev){
                     helper.css({left: -9999, top: -9999});
-                    treeDiv.append(helper);
+
+                    $body.append(helper);
+
                     $body.addClass("simple-tree-flowdrag-body");
                     treeDiv.addClass("simple-tree-flowdrag");
                     firstMove = true;
@@ -194,12 +198,11 @@ define(function (require) {
                         var hText = (dragNodes.length == 1) ? dragNodes[0].title : dragNodes[0].title + " + " + (dragNodes.length - 1);
                         helper.html(hText);
 
-                        hDim = {
-                            left : treeDiv.offset().left,
-                            top : treeDiv.offset().top,
-                            bottom : treeDiv.offset().top + treeDiv.height() - helper.outerHeight(),
-                            right : treeDiv.offset().left + treeDiv.width()// - helper.outerWidth()
-                        };
+                        hDim.left = treeDiv.offset().left;
+                        hDim.top = treeDiv.offset().top;
+                        hDim.bottom = treeDiv.offset().top + treeDiv.height() - helper.outerHeight();
+                        hDim.right = treeDiv.offset().left + treeDiv.width();// - helper.outerWidth()
+
 
                         treeDiv.bind("mouseover" + namespace_ev, function(ev){
                             el = $(ev.target);
@@ -258,7 +261,7 @@ define(function (require) {
                                 //create elements
                                 onDragStart(ev);
                             } else if (canDrag){
-                                moveHelper(ev);
+                                moveHelper(ev, opt);
                             }
                         }).bind(end_ev, function(ev){
                                 if (firstMove && canDrag && overId !== undefined){
