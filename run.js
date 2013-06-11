@@ -103,6 +103,9 @@ define(function (require) {
                 enable: true,
                 pulling: true,
                 treeBorderLimit: true,
+                dragStart: function(){
+                    //return false;
+                },
                 dragEnd: function(dragNode, parentId, pos, source, destination){
                     console.log(dragNode, twoTree.getNode(parentId));
 

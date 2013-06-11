@@ -184,52 +184,56 @@ define(function (require) {
                     treeDiv.addClass("simple-tree-flowdrag");
                     firstMove = true;
                     collectDragNodes(ev);
-                    if (dragNodes.length != 0){
-                        bindMouseOver();
-                    } else {
-                        canDrag = false;
+                    canDrag = (dragNodes.length !=0);
+                    if (canDrag){
+                        var dragStartValue = opt.dragStart && opt.dragStart();
+                        if (dragStartValue === false){
+                            //stop dragging
+                            canDrag = false;
+                            clearDrag();
+                        } else {
+                            bindMouseOver();
+                        }
                     }
                 }
 
                 function bindMouseOver(){
                     stopDragging();
-                    canDrag = (dragNodes.length !=0);
-                    if (canDrag){
-                        var hText = (dragNodes.length == 1) ? dragNodes[0].title : dragNodes[0].title + " + " + (dragNodes.length - 1);
-                        helper.html(hText);
+                    var hText = (dragNodes.length == 1) ? dragNodes[0].title : dragNodes[0].title + " + " + (dragNodes.length - 1);
+                    helper.html(hText);
 
-                        hDim.left = treeDiv.offset().left;
-                        hDim.top = treeDiv.offset().top;
-                        hDim.bottom = treeDiv.offset().top + treeDiv.height() - helper.outerHeight();
-                        hDim.right = treeDiv.offset().left + treeDiv.width();// - helper.outerWidth()
+                    hDim.left = treeDiv.offset().left;
+                    hDim.top = treeDiv.offset().top;
+                    hDim.bottom = treeDiv.offset().top + treeDiv.height() - helper.outerHeight();
+                    hDim.right = treeDiv.offset().left + treeDiv.width();// - helper.outerWidth()
 
 
-                        treeDiv.bind("mouseover" + namespace_ev, function(ev){
-                            el = $(ev.target);
-                            removeSelection();
-                            plane = el.closest(".simple-tree-container");
-                            elFolder = el.closest(".simple-tree-folder");
-                            overId = undefined;
-                            clearInterval(openClosedFolderTimer);
-                            if (elFolder.length == 0){
-                                //drop area for children
-                                tId = plane.data("id");
-                                if (checkDragInto.call(self, tId)){
-                                    elFolder = plane.prev();
-                                    elFolder.addClass("simple-tree-flowdrag-hover");
-                                    plane.addClass("simple-tree-flowdrag-hover");
-                                    overId = tId;
-                                }
-                            } else {
-                                tId = elFolder.data("id");
-                                if (checkDragInto.call(self, tId, dragNodes)){
-                                    elFolder.addClass("simple-tree-flowdrag-hover");
-                                    overId = tId;
-                                    openClosedFolder(tree, elFolder);
-                                }
+                    treeDiv.bind("mouseover" + namespace_ev, function(ev){
+                        el = $(ev.target);
+                        removeSelection();
+                        plane = el.closest(".simple-tree-container");
+                        elFolder = el.closest(".simple-tree-folder");
+                        overId = undefined;
+                        clearInterval(openClosedFolderTimer);
+                        if (elFolder.length == 0){
+                            //drop area for children
+                            tId = plane.data("id");
+                            if (checkDragInto.call(self, tId)){
+                                elFolder = plane.prev();
+                                elFolder.addClass("simple-tree-flowdrag-hover");
+                                plane.addClass("simple-tree-flowdrag-hover");
+                                overId = tId;
                             }
-                        });
-                    }
+                        } else {
+                            tId = elFolder.data("id");
+                            if (checkDragInto.call(self, tId, dragNodes)){
+                                elFolder.addClass("simple-tree-flowdrag-hover");
+                                overId = tId;
+                                openClosedFolder(tree, elFolder);
+                            }
+                        }
+                    });
+
                 }
 
                 function checkClick(ev){
