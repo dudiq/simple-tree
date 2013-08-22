@@ -7,7 +7,7 @@ define(function (require) {
 
         var simpleData = {title:"root", id:0,
             nodes:[
-                {title:"child", alt:"alt", id: 5, nodes:[{title:"chl3", id: 4, cssClass:'testCss'}, {title: "ch4", id:3, closed:true, nodes:[{id: "ko", title:"ko"}]}]},
+                {title:"chi   ld", alt:"alt", id: 5, nodes:[{title:"c hl3", id: 4, cssClass:'testCss'}, {title: "ch4", id:3, closed:true, nodes:[{id: "ko", title:"ko"}]}]},
                 {title:"ch2", id: 1, nodes: []}
             ]
         };

@@ -182,7 +182,7 @@ define(function (require) {
 
                     $body.addClass("simple-tree-flowdrag-body");
                     treeDiv.addClass("simple-tree-flowdrag");
-                    firstMove = true;
+                    firstMove = false;
                     collectDragNodes(ev);
                     canDrag = (dragNodes.length !=0);
                     if (canDrag){
@@ -261,14 +261,19 @@ define(function (require) {
                                 return false;
                             }
 
-                            if (!firstMove && !ev.shiftKey){
+                            var thatPoint = firstMove && (firstMove.clientX != ev.clientX && firstMove.clientY != ev.clientY);
+
+                            if (thatPoint && !ev.shiftKey){
                                 //create elements
                                 onDragStart(ev);
                             } else if (canDrag){
                                 moveHelper(ev, opt);
                             }
+                            //drop selection
+                            ev.preventDefault();
+                            return false;
                         }).bind(end_ev, function(ev){
-                                if (firstMove && canDrag && overId !== undefined){
+                                if (!firstMove && canDrag && overId !== undefined){
                                     dragEnd.call(self, dragNodes, overId);
                                 }
                                 clearDrag();
@@ -283,14 +288,11 @@ define(function (require) {
 
                 treeDiv.unbind(start_ev).bind(start_ev, function(ev){
                     if (self.enable()){
-                        firstMove = false;
+                        firstMove = {clientX: ev.clientX, clientY: ev.clientY};
                         clearDrag();
                         bindWindowEvents(ev);
 
                     }
-                    //drop selection
-                    ev.preventDefault();
-                    return false;
                 });
 
             },
