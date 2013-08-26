@@ -254,7 +254,6 @@ define(function (require) {
                     var which = ev.which;
                     if (checkClick.call(self, ev)){
                         $win.bind(move_ev, function(ev){
-
                             if (which != ev.which){
                                 //hack for iframe
                                 clearDrag();
@@ -288,8 +287,8 @@ define(function (require) {
 
                 treeDiv.unbind(start_ev).bind(start_ev, function(ev){
                     if (self.enable()){
-                        firstMove = {clientX: ev.clientX, clientY: ev.clientY};
                         clearDrag();
+                        firstMove = {clientX: ev.clientX, clientY: ev.clientY};
                         bindWindowEvents(ev);
 
                     }
