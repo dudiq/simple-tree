@@ -25,22 +25,22 @@ define(function (require) {
                     },
                 indent:5,
                 showTitle:true,
-                multiSelect: true
+                multiSelect: true,
+                    onClick: function(data){
+                        console.dir(arguments);
+                        console.log("click");
+                    },
+                    onDblClick: function(){
+                        console.log("dblclick");
+                    },
+                    onSelect: function(){
+                        console.log("select");
+                    },
+                    onExpandNode: function(){
+                        console.log("expand");
+                    }
                 }
         );
-        $(newTree).bind(jqSimpleTree.onClick, function(ev, data){
-            console.dir(arguments);
-            console.log("click");
-        });
-        $(newTree).bind(jqSimpleTree.onDblClick, function(ev, data){
-            console.log("dblclick");
-        });
-        $(newTree).bind(jqSimpleTree.onSelect, function(ev, data){
-            console.log("select");
-        });
-        $(newTree).bind(jqSimpleTree.onExpandNode, function(){
-            console.log("expand");
-        });
 
 
         $("#init").click(function(){
@@ -99,7 +99,14 @@ define(function (require) {
                 {title: "h6"}
             ]}
         ]},
-            {multiSelect: true, plugins:{flowDrag: {
+            {
+                onSelectionChanged: function(newSel, oldSel){
+                    console.log(newSel, oldSel);
+                },
+                onClick: function(){
+                    console.log("click");
+                },
+                multiSelect: true, plugins:{flowDrag: {
                 enable: true,
                 pulling: true,
                 treeBorderLimit: true,
@@ -114,9 +121,6 @@ define(function (require) {
                 }
             }
             }});
-        $(twoTree).bind(jqSimpleTree.onClick, function(){
-            console.log("click");
-        });
 
 
         var hugeTree = jqSimpleTree($("#hugeTree"), {title:"root", id:0, hideNodeTitle: true,
@@ -213,100 +217,5 @@ define(function (require) {
             newTree.setNodeSubIconClass(5, "ssj");
         });
 
-        //how to create draggable from other elements
-        /*
-        var dragPlugin = newTree.plugins()['drag'], dragObj;
-        $("#forDrag").draggable({
-            "cursorAt": {left: -20, top: 20},// top must be 20, for correct detect point
-            start: function(){
-                dragObj = dragPlugin.createDragObj({data: "data"});
-                dragPlugin.onDragStart();
-            },
-            drag: function(ev, ui){
-                dragPlugin.onDrag(ev, ui, dragObj);
-            },
-            stop: function(){
-                dragPlugin.onDragStop(dragObj);
-            }
-        });
-        */
-
-
-
-        function callAsync(id){
-            var dfd = $.Deferred();
-            //var value = Math.random() * 100;
-            setTimeout(function(){
-                //console.log(id);
-                dfd.resolve();
-            }, 1000);
-            return dfd.promise();
-        }
-
-        function mass(arr){
-            var dfd = $.Deferred();
-            if (arr.length != 0){
-                var val = arr.shift();
-                val().done(function(){
-                    mass(arr);
-                }).fail(function(){
-                    dfd.reject();
-                });
-            } else {
-                dfd.resolve();
-            }
-            return dfd;
-        }
-
-        var arr = [];
-        for (var i = 0; i < 5; i++){
-            (function(id){
-                arr.push(function(){
-                    return callAsync(id);
-                });
-            })(i);
-        }
-
-        var dfd = mass(arr);
-
-        dfd.done(function(){
-            console.log("done all");
-        }).fail(function(){
-            console.log("fail all");
-        });
-
-
-        twoTree.traverseNodes(twoTree.getDataLink(), function(node){
-            if (node.title == "ch4"){
-                //console.log("test");
-                return false;
-            }
-        });
-
-        var dfd = $.Deferred();
-
-
-        function myPrivateFunction() {
-            // Setting some stuff on the instance
-            self.publicAttribute1 = 2;
-        }
-
-        var myObject = function () {
-            var self = this;
-
-            self.publicAttribute1 = 10;
-            self.publicAttribute2 = '5';
-
-        };
-
-        myObject.prototype.instanceMethod = function () {
-            // Simple function call without any use of `call` or `apply`
-            myPrivateFunction();
-        };
-
-
-        var test = new myObject();
-
-        test.instanceMethod();
     });
 });

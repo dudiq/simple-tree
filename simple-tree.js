@@ -19,6 +19,9 @@ define(function (require) {
         move_ev = ((isMobile) ? "touchmove" : "mousemove"),
         end_ev = ((isMobile) ? "touchend" : "click");
 
+    var SELECTED_NODES_ID = "selectedNodesId";
+    var SELECTED_ONE_NODE_ID = "selectedNodeId";
+    
         //private methods
     function log(msg){
         if (console)
@@ -113,6 +116,42 @@ define(function (require) {
         return (ev) ? ev.shiftKey : false;
     }
 
+    function trig(name){
+        var options = this._opt;
+        if (options[name] && typeof options[name] == "function"){
+            var args = Array.prototype.slice.call(arguments, 0);
+            args.splice(0, 1);//remove name argument
+            options[name].apply(this, args);
+        }
+    }
+
+    
+    function selectionChanged(){
+        var env = this._treeEnv;
+        var toCompare = {
+            nodes: env[SELECTED_NODES_ID],
+            node: env[SELECTED_ONE_NODE_ID]
+        };
+
+        var ret = (JSON.stringify(toCompare) == JSON.stringify(env['rememberSelected']));
+
+        if (!ret){
+            var oldSelected = env['rememberSelected'] && env['rememberSelected'].nodes;
+            var newSelected = env[SELECTED_NODES_ID];
+            trig.call(this, "onSelectionChanged", newSelected, oldSelected);
+        }
+
+        toCompare = null;
+    }
+
+    function rememberSelection(){
+        var env = this._treeEnv;
+        env['rememberSelected'] = {
+            nodes: clone(env[SELECTED_NODES_ID]),
+            node: clone(env[SELECTED_ONE_NODE_ID])
+        }
+    }
+    
     //basic
     function jqSimpleTree(div, data, opt) {
 
@@ -542,6 +581,7 @@ define(function (require) {
                 return ret;
             },
             removeNode: function(id){
+                rememberSelection.call(this);
                 var sysStruct = this._getNodesMap(id),
                     self = this;
                 if (!sysStruct){
@@ -577,6 +617,7 @@ define(function (require) {
                     //for root node
                     this._dropData();
                 }
+                selectionChanged.call(this);                
             },
             removeChildren: function(id){
                 var map = this._getNodesMap(id);
@@ -633,14 +674,16 @@ define(function (require) {
                     (nodeContainer) ? nodeContainer.show() : null;
                     node.closed = false;
                     if (callEvent){
-                        $(tree).trigger(jqSimpleTree.onExpandNode, [id]);
+                        //$(tree).trigger(jqSimpleTree.onExpandNode, [id]);
+                        trig.call(this, "onExpandNode", id);
                     }
                 } else {
                     el.addClass("simple-tree-close");
                     (nodeContainer) ? nodeContainer.hide() : null;
                     node.closed = true;
                     if (callEvent){
-                        $(tree).trigger(jqSimpleTree.onCollapseNode, [id]);
+                        //$(tree).trigger(jqSimpleTree.onCollapseNode, [id]);
+                        trig.call(this, "onCollapseNode", id);
                     }
                 }
             },
@@ -665,7 +708,8 @@ define(function (require) {
                             parentEl = self._getParentItemElement(el),
                             isExpandClick = el.hasClass("simple-tree-expand");
                         if (!isExpandClick && parentEl != null && parentEl.length !=0){
-                            $(tree).trigger(jqSimpleTree.onMouseDown, [parentEl.data("id"), el]);
+                            //$(tree).trigger(jqSimpleTree.onMouseDown, [parentEl.data("id"), el]);
+                            trig.call(self, "onMouseDown", parentEl.data("id"), el);
                         }
                     }
                 }).bind(end_ev + ".simpleTree", function(ev){
@@ -685,7 +729,9 @@ define(function (require) {
                                     map.bung.action();
                                 }
                             } else {
-                                $(tree).trigger(jqSimpleTree.onClick, [itemId, el, parentEl, isCtrlPressed(ev), isShiftPressed(ev)]);
+                                //jQuery events will be deprecated
+                                //$(tree).trigger(jqSimpleTree.onClick, [itemId, el, parentEl, isCtrlPressed(ev), isShiftPressed(ev)]);
+                                trig.call(self, "onClick", itemId, el, parentEl, isCtrlPressed(ev), isShiftPressed(ev));
                             }
                         }
                     }
@@ -695,7 +741,8 @@ define(function (require) {
                             parentEl = self._getParentItemElement(el),
                             isExpandClick = el.hasClass("simple-tree-expand");
                         if (!isExpandClick && parentEl != null && parentEl.length !=0){
-                            $(tree).trigger(jqSimpleTree.onDblClick, [parentEl.data("id"), el]);
+                            //$(tree).trigger(jqSimpleTree.onDblClick, [parentEl.data("id"), el]);
+                            trig.call(self, "onDblClick", parentEl.data("id"), el);
                         }
                     }
                 }).bind("mouseover.simpleTree", function(ev){
@@ -703,7 +750,8 @@ define(function (require) {
                         var el = self._getEventElem(ev);
                         if (el.hasClass("simple-tree-title")) {
                             var clickEl = self._getParentItemElement(el);
-                            $(tree).trigger(jqSimpleTree.onMouseOver, [clickEl.data("id")]);
+                            //$(tree).trigger(jqSimpleTree.onMouseOver, [clickEl.data("id")]);
+                            trig.call(self, "onMouseOver", clickEl.data("id"));
                         }
                     }
                 }).bind("mouseout.simpleTree", function(ev){
@@ -711,7 +759,8 @@ define(function (require) {
                         var el = self._getEventElem(ev);
                         if (el.hasClass("simple-tree-title")) {
                             var clickEl = self._getParentItemElement(el);
-                            $(tree).trigger(jqSimpleTree.onMouseOut, [clickEl.data("id")]);
+                            //$(tree).trigger(jqSimpleTree.onMouseOut, [clickEl.data("id")]);
+                            trig.call(self, "onMouseOut", clickEl.data("id"));
                         }
                     }
                 }).bind(move_ev + ".simpleTree", function(){
@@ -737,7 +786,7 @@ define(function (require) {
                     env = this._treeEnv,
                     firstNode = this._getNodesMap(startId),
                     endNode = this._getNodesMap(endId),
-                    selNodes = env["selectedNodesId"] || [];
+                    selNodes = env[SELECTED_NODES_ID] || [];
 
                 if ((firstNode.divs.offset().top > endNode.divs.offset().top)){
                     var tmp = firstNode;
@@ -781,19 +830,20 @@ define(function (require) {
                 for (i = 0, l = collectIds.length; i < l; i++){
                     this._setSelectedStyleToEl(this._getNodesMap(collectIds[i]).divs);
                 }
+                
+                env[SELECTED_NODES_ID] = collectIds;
 
-                env["selectedNodesId"] = collectIds;
-
-            },
+            },            
             _onSelect: function(el, callEvent, ctrlPressed, shiftPressed){
                 if (!this.enable()) return;
+                rememberSelection.call(this);
                 var env = this._treeEnv;
-                (!env["selectedNodesId"]) ? env["selectedNodesId"] = [] : null;
+                (!env[SELECTED_NODES_ID]) ? env[SELECTED_NODES_ID] = [] : null;
                 var self = this,
                     selCss = "simple-tree-item-selected",
-                    oldSelId = env["selectedNodeId"],
-                    selNodes = env["selectedNodesId"],
-                    selId = env["selectedNodeId"] = el.data("id");
+                    oldSelId = env[SELECTED_ONE_NODE_ID],
+                    selNodes = env[SELECTED_NODES_ID],
+                    selId = env[SELECTED_ONE_NODE_ID] = el.data("id");
 
                 if (this.multiSelect() && (ctrlPressed || shiftPressed)){
                     if (ctrlPressed){
@@ -816,29 +866,31 @@ define(function (require) {
                         this._collectNodesByShiftKey(env.shiftSelectedId || oldSelId, selId);
                     } else {
                         env.shiftSelectedId = selId;
-                    }
+                    }                   
                 } else {
                     //single click
                     env.shiftSelectedId = selId;
-                    env["selectedNodesId"] = [selId];
+                    env[SELECTED_NODES_ID] = [selId];
                     this._div.find("table."+selCss).each(function(){
                         self._removeSelectedStyleToEl($(this));
                     });
                     this._setSelectedStyleToEl(el);
                 }
                 if (callEvent !== false){
-                    $(tree).trigger(jqSimpleTree.onSelect, [selId, oldSelId]);
+                    //$(tree).trigger(jqSimpleTree.onSelect, [selId, oldSelId]);
+                    trig.call(self, "onSelect", selId, oldSelId);
                 }
+                selectionChanged.call(this);
             },
             updateSelection: function(ids){
                 var self = this;
                 function update(id){
                     var env = self._treeEnv,
                         selCss = "simple-tree-item-selected",
-                        selNodes = env["selectedNodesId"],
+                        selNodes = env[SELECTED_NODES_ID],
                         selNode,
                         node;
-                    (id != undefined) ? node = self._getNodesMap(id) : node = self._getNodesMap(env["selectedNodeId"]);
+                    (id != undefined) ? node = self._getNodesMap(id) : node = self._getNodesMap(env[SELECTED_ONE_NODE_ID]);
                     (node) ? self._setSelectedStyleToEl(node['divs']) : null;
 
                     if ($.isArray(selNodes)){
@@ -870,13 +922,13 @@ define(function (require) {
             _clearSelection: function(id){
                 var env = this._treeEnv,
                     selCss = "simple-tree-item-selected",
-                    selNodes = env["selectedNodesId"],
+                    selNodes = env[SELECTED_NODES_ID],
                     selNode,
                     node;
-                (id != undefined) ? node = this._getNodesMap(id) : node = this._getNodesMap(env["selectedNodeId"]);
+                (id != undefined) ? node = this._getNodesMap(id) : node = this._getNodesMap(env[SELECTED_ONE_NODE_ID]);
                 if (node) {
                     this._removeSelectedStyleToEl(node['divs']);
-                    env["selectedNodeId"] = undefined;
+                    env[SELECTED_ONE_NODE_ID] = undefined;
                 }
 
                 if ($.isArray(selNodes)){
@@ -892,7 +944,7 @@ define(function (require) {
                 }
             },
             getSelectedNodes: function(){
-                var selNodes = this._treeEnv["selectedNodesId"],
+                var selNodes = this._treeEnv[SELECTED_NODES_ID],
                     node,
                     ret = [];
                 if (selNodes){
@@ -909,11 +961,11 @@ define(function (require) {
                 return ret;
             },
             getSelectedNodesId: function(){
-                var ret = this._treeEnv["selectedNodesId"];
+                var ret = this._treeEnv[SELECTED_NODES_ID];
                 return (ret == undefined) ? [] : ret;
             },
             getSelectedNode: function(){
-                return this.getNode(this._treeEnv["selectedNodeId"]);
+                return this.getNode(this._treeEnv[SELECTED_ONE_NODE_ID]);
             },
             getSelectedNodeId: function(){
                 var selNode = this.getSelectedNode();
@@ -1062,14 +1114,14 @@ define(function (require) {
                 if (val != undefined){
                     this._opt['selectedColor'] = val;
 
-                    this._treeEnv["selectedNodesId"] && this.updateSelection(this._treeEnv["selectedNodesId"]);
+                    this._treeEnv[SELECTED_NODES_ID] && this.updateSelection(this._treeEnv[SELECTED_NODES_ID]);
                 }
                 return this._opt['selectedColor'];
             },
             selectedBorder: function(val){
                 if (val != undefined){
                     this._opt['selectedBorder'] = val;
-                    this._treeEnv["selectedNodesId"] && this.updateSelection(this._treeEnv["selectedNodesId"]);
+                    this._treeEnv[SELECTED_NODES_ID] && this.updateSelection(this._treeEnv[SELECTED_NODES_ID]);
                 }
                 return this._opt['selectedBorder'];
             },
@@ -1119,14 +1171,14 @@ define(function (require) {
     }
 
     //constants
-    jqSimpleTree.onClick = "Event#jqSimpleTree#onClick";
-    jqSimpleTree.onDblClick = "Event#jqSimpleTree#onDblClick";
-    jqSimpleTree.onSelect = "Event#jqSimpleTree#onSelect";
-    jqSimpleTree.onExpandNode = "Event#jqSimpleTree#onExpandNode";
-    jqSimpleTree.onCollapseNode = "Event#jqSimpleTree#onCollapseNode";
-    jqSimpleTree.onMouseDown = "Event#jqSimpleTree#onMouseDown";
-    jqSimpleTree.onMouseOver = "Event#jqSimpleTree#onMouseOver";
-    jqSimpleTree.onMouseOut = "Event#jqSimpleTree#onMouseOut";
+//    jqSimpleTree.onClick = "Event#jqSimpleTree#onClick";
+//    jqSimpleTree.onDblClick = "Event#jqSimpleTree#onDblClick";
+//    jqSimpleTree.onSelect = "Event#jqSimpleTree#onSelect";
+//    jqSimpleTree.onExpandNode = "Event#jqSimpleTree#onExpandNode";
+//    jqSimpleTree.onCollapseNode = "Event#jqSimpleTree#onCollapseNode";
+//    jqSimpleTree.onMouseDown = "Event#jqSimpleTree#onMouseDown";
+//    jqSimpleTree.onMouseOver = "Event#jqSimpleTree#onMouseOver";
+//    jqSimpleTree.onMouseOut = "Event#jqSimpleTree#onMouseOut";
 
     //static methods
     jqSimpleTree.registerPlugin = function(name, plugin){
