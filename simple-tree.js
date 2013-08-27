@@ -2,7 +2,7 @@
 * jQuery Simple Tree
 * https://github.com/dudiq/simple-tree
 *
-* @version: 0.7 - 2013.03.22
+* @version: 0.8 - 2013.08.27
 * @author: dudiq
 * @licence: MIT http://www.opensource.org/licenses/mit-license.php
 *
@@ -125,7 +125,6 @@ define(function (require) {
         }
     }
 
-    
     function selectionChanged(){
         var env = this._treeEnv;
         var toCompare = {
@@ -1169,16 +1168,6 @@ define(function (require) {
         tree._init(div, data, opt);
         return tree;
     }
-
-    //constants
-//    jqSimpleTree.onClick = "Event#jqSimpleTree#onClick";
-//    jqSimpleTree.onDblClick = "Event#jqSimpleTree#onDblClick";
-//    jqSimpleTree.onSelect = "Event#jqSimpleTree#onSelect";
-//    jqSimpleTree.onExpandNode = "Event#jqSimpleTree#onExpandNode";
-//    jqSimpleTree.onCollapseNode = "Event#jqSimpleTree#onCollapseNode";
-//    jqSimpleTree.onMouseDown = "Event#jqSimpleTree#onMouseDown";
-//    jqSimpleTree.onMouseOver = "Event#jqSimpleTree#onMouseOver";
-//    jqSimpleTree.onMouseOut = "Event#jqSimpleTree#onMouseOut";
 
     //static methods
     jqSimpleTree.registerPlugin = function(name, plugin){
