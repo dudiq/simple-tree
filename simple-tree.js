@@ -118,11 +118,13 @@ define(function (require) {
 
     function trig(name){
         var options = this._opt;
+        var res;
         if (options[name] && typeof options[name] == "function"){
             var args = Array.prototype.slice.call(arguments, 0);
             args.splice(0, 1);//remove name argument
-            options[name].apply(this, args);
+            res = options[name].apply(this, args);
         }
+        return res;
     }
 
     function selectionChanged(){
