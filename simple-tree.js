@@ -880,8 +880,8 @@ define(function (require) {
                 if (callEvent !== false){
                     //$(tree).trigger(jqSimpleTree.onSelect, [selId, oldSelId]);
                     trig.call(self, "onSelect", selId, oldSelId);
+                    selectionChanged.call(this);
                 }
-                selectionChanged.call(this);
             },
             updateSelection: function(ids){
                 var self = this;

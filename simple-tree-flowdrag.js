@@ -252,6 +252,7 @@ define(function (require) {
                 function bindWindowEvents(ev){
                     //check target for exists in dragNodes
                     var which = ev.which;
+                    var startEv = ev;
                     if (checkClick.call(self, ev)){
                         $win.bind(move_ev, function(ev){
                             if (which != ev.which){
@@ -264,7 +265,7 @@ define(function (require) {
 
                             if (thatPoint && !ev.shiftKey){
                                 //create elements
-                                onDragStart(ev);
+                                onDragStart(startEv);
                             } else if (canDrag){
                                 moveHelper(ev, opt);
                             }
