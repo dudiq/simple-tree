@@ -846,6 +846,15 @@ define(function (require) {
                     selNodes = env[SELECTED_NODES_ID],
                     selId = env[SELECTED_ONE_NODE_ID] = el.data("id");
 
+                function singleClick(){
+                    env.shiftSelectedId = selId;
+                    env[SELECTED_NODES_ID] = [selId];
+                    self._div.find("table."+selCss).each(function(){
+                        self._removeSelectedStyleToEl($(this));
+                    });
+                    self._setSelectedStyleToEl(el);
+                }
+
                 if (this.multiSelect() && (ctrlPressed || shiftPressed)){
                     if (ctrlPressed){
                         //multi click
@@ -864,18 +873,20 @@ define(function (require) {
                     }
 
                     if (shiftPressed){
-                        this._collectNodesByShiftKey(env.shiftSelectedId || oldSelId, selId);
+                        var startSelectionId = env.shiftSelectedId || oldSelId;
+                        if (this._getNodesMap(startSelectionId)){
+                            this._collectNodesByShiftKey(startSelectionId, selId);
+                        } else {
+                            // call single click
+                            singleClick();
+                        }
+
                     } else {
                         env.shiftSelectedId = selId;
                     }                   
                 } else {
                     //single click
-                    env.shiftSelectedId = selId;
-                    env[SELECTED_NODES_ID] = [selId];
-                    this._div.find("table."+selCss).each(function(){
-                        self._removeSelectedStyleToEl($(this));
-                    });
-                    this._setSelectedStyleToEl(el);
+                    singleClick();
                 }
                 if (callEvent !== false){
                     //$(tree).trigger(jqSimpleTree.onSelect, [selId, oldSelId]);
