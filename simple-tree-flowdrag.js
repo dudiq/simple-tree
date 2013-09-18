@@ -18,12 +18,11 @@ define(function (require) {
 
     var openClosedFolderTimer;
     function openClosedFolder(tree, target){
-        clearInterval(openClosedFolderTimer);
+        clearTimeout(openClosedFolderTimer);
         if (target.hasClass("simple-tree-folder")){
             var el = target.find(".simple-tree-expand.simple-tree-close");
             if (el.length > 0){
-                openClosedFolderTimer = setInterval(function(){
-                    clearInterval(openClosedFolderTimer);
+                openClosedFolderTimer = setTimeout(function(){
                     tree._expandCollapseNode(el);
                 }, 1500);
             }
@@ -147,6 +146,7 @@ define(function (require) {
                     removeSelection();
                     overId = undefined;
                     helper.css({left: -9999, top: -9999});
+                    clearTimeout(openClosedFolderTimer);
                 }
 
                 function removeSelection(){
@@ -214,7 +214,7 @@ define(function (require) {
                         plane = el.closest(".simple-tree-container");
                         elFolder = el.closest(".simple-tree-folder");
                         overId = undefined;
-                        clearInterval(openClosedFolderTimer);
+                        clearTimeout(openClosedFolderTimer);
                         if (elFolder.length == 0){
                             //drop area for children
                             tId = plane.data("id");
