@@ -670,20 +670,18 @@ define(function (require) {
                     nodeContainer = this._getContainerForNodes(id);
                 callEvent = (callEvent !== false && this.enable()) ? true : callEvent;
                 expand = (expand != undefined) ? expand : el.hasClass("simple-tree-close");
-                if (expand){
+                if (expand && node.closed){
                     el.removeClass("simple-tree-close");
                     (nodeContainer) ? nodeContainer.show() : null;
                     node.closed = false;
                     if (callEvent){
-                        //$(tree).trigger(jqSimpleTree.onExpandNode, [id]);
                         trig.call(this, "onExpandNode", id);
                     }
-                } else {
+                } else if (!expand && !node.closed){
                     el.addClass("simple-tree-close");
                     (nodeContainer) ? nodeContainer.hide() : null;
                     node.closed = true;
                     if (callEvent){
-                        //$(tree).trigger(jqSimpleTree.onCollapseNode, [id]);
                         trig.call(this, "onCollapseNode", id);
                     }
                 }
@@ -709,7 +707,6 @@ define(function (require) {
                             parentEl = self._getParentItemElement(el),
                             isExpandClick = el.hasClass("simple-tree-expand");
                         if (!isExpandClick && parentEl != null && parentEl.length !=0){
-                            //$(tree).trigger(jqSimpleTree.onMouseDown, [parentEl.data("id"), el]);
                             trig.call(self, "onMouseDown", parentEl.data("id"), el);
                         }
                     }
@@ -731,7 +728,6 @@ define(function (require) {
                                 }
                             } else {
                                 //jQuery events will be deprecated
-                                //$(tree).trigger(jqSimpleTree.onClick, [itemId, el, parentEl, isCtrlPressed(ev), isShiftPressed(ev)]);
                                 trig.call(self, "onClick", itemId, el, parentEl, isCtrlPressed(ev), isShiftPressed(ev));
                             }
                         }
@@ -742,7 +738,6 @@ define(function (require) {
                             parentEl = self._getParentItemElement(el),
                             isExpandClick = el.hasClass("simple-tree-expand");
                         if (!isExpandClick && parentEl != null && parentEl.length !=0){
-                            //$(tree).trigger(jqSimpleTree.onDblClick, [parentEl.data("id"), el]);
                             trig.call(self, "onDblClick", parentEl.data("id"), el);
                         }
                     }
@@ -751,7 +746,6 @@ define(function (require) {
                         var el = self._getEventElem(ev);
                         if (el.hasClass("simple-tree-title")) {
                             var clickEl = self._getParentItemElement(el);
-                            //$(tree).trigger(jqSimpleTree.onMouseOver, [clickEl.data("id")]);
                             trig.call(self, "onMouseOver", clickEl.data("id"));
                         }
                     }
@@ -760,7 +754,6 @@ define(function (require) {
                         var el = self._getEventElem(ev);
                         if (el.hasClass("simple-tree-title")) {
                             var clickEl = self._getParentItemElement(el);
-                            //$(tree).trigger(jqSimpleTree.onMouseOut, [clickEl.data("id")]);
                             trig.call(self, "onMouseOut", clickEl.data("id"));
                         }
                     }
@@ -889,7 +882,6 @@ define(function (require) {
                     singleClick();
                 }
                 if (callEvent !== false){
-                    //$(tree).trigger(jqSimpleTree.onSelect, [selId, oldSelId]);
                     trig.call(self, "onSelect", selId, oldSelId);
                     selectionChanged.call(this);
                 }

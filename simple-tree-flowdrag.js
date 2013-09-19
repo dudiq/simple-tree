@@ -275,6 +275,7 @@ define(function (require) {
                         }).bind(end_ev, function(ev){
                                 if (!firstMove && canDrag && overId !== undefined){
                                     dragEnd.call(self, dragNodes, overId);
+                                    tree.openNode(overId);
                                 }
                                 clearDrag();
                         });
