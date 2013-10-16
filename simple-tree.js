@@ -339,7 +339,7 @@ define(function (require) {
             },
             setItemIcon: function(id, iconUrl){
                 var map = this._getNodesMap(id);
-                if (map){
+                if (map && map.drawn){
                     var icon = $(map.divs[0]).find(".simple-tree-item-icon");
                     if (icon.length > 0 && (icon[0].tagName).toLowerCase() == "span"){
                         var classAttr = icon.attr("class"), styleAttr = icon.attr("style");
@@ -542,7 +542,7 @@ define(function (require) {
             },
             _traverseParents: function(nodeId, callback){
                 var parent = this.getParentNode(nodeId);
-                if (parent != undefined && callback(parent) != false){
+                if (parent != undefined && callback.call(this, parent) != false){
                     this._traverseParents(parent['id'], callback);
                 }
             },
@@ -707,27 +707,39 @@ define(function (require) {
             },
             closeNode: function(id, callEvent){
                 var map = this._getNodesMap(id);
-                if (map != undefined){
-                    this._expandCollapseNode(map.divs.find(".simple-tree-expand"), false, callEvent);
+                if (map != undefined && map.drawn){
+                    this._expandCollapseNode(map, false, callEvent);
                 }
             },
             openNode: function(id, callEvent){
                 var map = this._getNodesMap(id);
                 if (map != undefined){
-                    this._expandCollapseNode(map.divs.find(".simple-tree-expand"), true, callEvent);
+                    if (!map.drawn){
+                        //traverse all parents to open from first to this
+                        this._traverseParents(map.node.id, function(pNode){
+                            var pMap = this._getNodesMap(pNode.id);
+                            this._expandCollapseNode(pMap, true, false);
+                        });
+                    }
+                    this._expandCollapseNode(map, true, callEvent);
                 }
             },
             expandCollapseNode: function(id, callEvent){
                 var map = this._getNodesMap(id);
                 if (map != undefined){
-                    this._expandCollapseNode(map.divs.find(".simple-tree-expand"), undefined, callEvent);
+                    this._expandCollapseNode(map, undefined, callEvent);
                 }
             },
-            _expandCollapseNode: function(el, expand, callEvent){
-                var parentEl = this._getParentItemElement(el),
-                    id = parentEl.data("id"),
-                    node = this.getNode(id),
+            _expandCollapseNode: function(map, expand, callEvent){
+                var id = map.node.id,
+                    node = map.node,
                     nodeContainer = this._getContainerForNodes(id);
+
+                if (!map.divs) {
+                    createLine.call(this, node, map.parentId, map);
+                }
+                var el = map.divs.find(".simple-tree-expand");
+
                 callEvent = (callEvent !== false && this.enable()) ? true : callEvent;
                 expand = (expand != undefined) ? expand : el.hasClass("simple-tree-close");
                 if (expand && node.closed){
@@ -783,16 +795,16 @@ define(function (require) {
                     if (canCallEndEv && self.enable()){
                         var el = self._getEventElem(ev),
                             parentEl = self._getParentItemElement(el),
+                            itemId = parentEl.data("id"),
+                            map = self._getNodesMap(itemId),
                             isExpandClick = el.hasClass("simple-tree-expand");
-                        if (isExpandClick && !el.hasClass("simple-tree-no-child") && parentEl.hasClass("simple-tree-folder")){
-                            self._expandCollapseNode(el);
+                        if (map && isExpandClick && !el.hasClass("simple-tree-no-child") && parentEl.hasClass("simple-tree-folder")){
+                            self._expandCollapseNode(map);
                         }
                         if (!isExpandClick && parentEl && parentEl.length !=0){
                             self._onSelect(parentEl, true, isCtrlPressed(ev), isShiftPressed(ev));
-                            var itemId = parentEl.data("id");
                             if (el.hasClass('simple-tree-bung')) {
-                                var map = self._getNodesMap(itemId);
-                                if (map.bung && map.bung.action){
+                                if (map && map.bung && map.bung.action){
                                     map.bung.action();
                                 }
                             } else {
@@ -884,14 +896,16 @@ define(function (require) {
                 }, opt);
 
                 // deselect old nodes
-                var i, l;
+                var i, l, map;
                 for (i = 0, l = selNodes.length; i < l; i++){
-                    this._removeSelectedStyleToEl(this._getNodesMap(selNodes[i]).divs);
+                    map = this._getNodesMap(selNodes[i]);
+                    map.divs && this._removeSelectedStyleToEl(map.divs);
                 }
 
                 //select new nodes
                 for (i = 0, l = collectIds.length; i < l; i++){
-                    this._setSelectedStyleToEl(this._getNodesMap(collectIds[i]).divs);
+                    map = this._getNodesMap(collectIds[i]);
+                    map.divs && this._setSelectedStyleToEl(map.divs);
                 }
                 
                 env[SELECTED_NODES_ID] = collectIds;
@@ -964,13 +978,13 @@ define(function (require) {
                         selNode,
                         node;
                     (id != undefined) ? node = self._getNodesMap(id) : node = self._getNodesMap(env[SELECTED_ONE_NODE_ID]);
-                    (node) ? self._setSelectedStyleToEl(node['divs']) : null;
+                    (node) && (node.divs && self._setSelectedStyleToEl(node.divs));
 
                     if ($.isArray(selNodes)){
                         for (var i = 0, l = selNodes.length; i < l; i++){
                             if (id == undefined || selNodes[i] == id){
                                 selNode = self._getNodesMap(selNodes[i]);
-                                (selNode) ? self._setSelectedStyleToEl(selNode['divs']) : null;
+                                (selNode) && (selNode.divs && self._setSelectedStyleToEl(selNode.divs));
                             }
                         }
                     }
@@ -1075,7 +1089,8 @@ define(function (require) {
             _selectNode: function(id, callEvent, ctrlPressed, shiftPressed){
                 var map = this._getNodesMap(id);
                 if (map) {
-                    var divs = map['divs'];
+                    this.openNode(id, false);
+                    var divs = map.divs;
                     this._onSelect($(divs[0]), callEvent, ctrlPressed, shiftPressed);
                 }
             },
@@ -1085,7 +1100,7 @@ define(function (require) {
             },
             focusNode: function(id){
                 var map = this._getNodesMap(id);
-                if (map) {
+                if (map && map.drawn) {
                     this._div.scrollTop(0);
                     this._div.scrollTop(map.divs.position().top - (this._div.height() / 2));
                 }
