@@ -139,7 +139,9 @@ define(function (require) {
         if (!ret){
             var oldSelected = env['rememberSelected'] && env['rememberSelected'].nodes;
             var newSelected = env[SELECTED_NODES_ID];
-            trig.call(this, "onSelectionChanged", newSelected, oldSelected);
+            if (newSelected != oldSelected){
+                trig.call(this, "onSelectionChanged", newSelected, oldSelected);
+            }
         }
 
         toCompare = null;
@@ -152,6 +154,65 @@ define(function (require) {
             node: clone(env[SELECTED_ONE_NODE_ID])
         }
     }
+
+
+    function drawSingleNodeMap(map, parentNodeMap, nodeId){
+        var nodeMap = map[nodeId];
+        if (parentNodeMap && parentNodeMap.drawn && nodeMap.drawn){
+            parentNodeMap.nodesContainer.append(nodeMap.divs, nodeMap.nodesContainer);
+        }
+    }
+
+    function createLine(node, pId, nodeMap){
+        (!nodeMap) && (nodeMap = {});
+        var isFolder = (node.nodes != undefined),
+            drawn = false,
+            itemDiv,
+            ul,
+            pNode = this._getNodesMap(pId),
+            isParentClosed = (pNode && pNode.node.closed) || false,
+            isParentDrawn = (pNode && !pNode.drawn) || true;
+
+        if (isParentDrawn && !isParentClosed && !nodeMap.divs) {
+            drawn = true;
+            var cssClass = (node.cssClass) && node.cssClass || "",
+                bungClass = (node.bungClass) && node.bungClass || (node.bung && node.bung.css) || "",
+                subIconClass = (node.subIconClass) && node.subIconClass || "",
+                title = (node.safeTitle !== false) ? getEscapedText(node.title || "")  : (node.title || ""),
+                alt = (node.alt) ? " title='" + node.alt +"' ": "",
+                showTitle = (this._opt["showTitle"]) ? getEscapedText(node.title || "") : "",
+                hasChild = (isFolder && node.nodes.length > 0),
+                isClosed = (isFolder && node.closed),
+                iconSizeStyle = (node.iconSize != undefined) ? "height:" + node.iconSize + "px; width:" + node.iconSize + "px;" : "";
+
+            ul = ((isFolder) && this._getNewContainerEl(node.id)) || null;
+
+            itemDiv = $("<table class='simple-tree-item "+((isFolder) ? "simple-tree-folder" : "simple-tree-child") + " " + cssClass + "' title='"+ showTitle +"'><tr>" +
+                "<td><span class='simple-tree-expand "+((!hasChild) ? "simple-tree-no-child" : "" )+ " " + ((isClosed) ? "simple-tree-close": "") + "'>&nbsp;</span></td>"+
+                "<td>" + ((node.icon != undefined) ? "<img src='"+ node.icon + "' class='simple-tree-item-icon' style='" + iconSizeStyle + "'>"
+                : "<span class='simple-tree-item-icon'>&nbsp;</span>") + "<span class='simple-tree-item-sub-icon " + subIconClass + "'>&nbsp;</span></td>"+
+                "<td><span class='simple-tree-title' "+ alt +">" + title + "</span></td><td class='simple-tree-last-td'><span class='simple-tree-bung " + bungClass + "'>&nbsp;</span></td></tr></table>");
+
+            isClosed && ul.hide();
+
+            if (node.hideNodeTitle === true) {
+                itemDiv.hide();
+            }
+            itemDiv.data({
+                "id": node.id
+            });
+        }
+        (node.userData == undefined) && (node.userData = {});
+
+        nodeMap.node = node;
+        nodeMap.divs = nodeMap.divs || itemDiv;
+        nodeMap.nodesContainer = nodeMap.nodesContainer || ul;
+        nodeMap.drawn = drawn;
+        nodeMap.parentId = pId;
+        nodeMap.bung = node.bung || {};
+        return nodeMap;
+    }
+
     
     //basic
     function jqSimpleTree(div, data, opt) {
@@ -172,6 +233,7 @@ define(function (require) {
                 var self = this;
                 this._id = "w" + this._generateUniqueId();
                 this._div = $("<div class='simple-tree' id='" + this._id + "'>").attr("unselectable", "on");
+                this._div[0].onselectstart = function(){ return false;};
                 this._setGetTree();
                 this._plugins = {}; this._treeEnv = {}; this._opt = (typeof opt == "object") ? opt : {};
                 this._dropData();
@@ -244,10 +306,10 @@ define(function (require) {
                 return getNewNodePos.call(this, pNodeId, node);
             },
             getLineHeight: function(){
-                var line = this._createLine({title:"&nbsp;"}),
+                var line = createLine.call(this, {title:"&nbsp;", closed: false, nodes:[]}),
                     div = $("<div/>"),
                     height = 0,
-                    buff = line.itemDiv;
+                    buff = line.divs;
                 div.css({position: "absolute", left: -500, top:-500});
                 div.append(buff);
                 this._div.append(div);
@@ -313,92 +375,77 @@ define(function (require) {
                     return (key == undefined) ? this._opt[opt] : (typeof this[opt] == "function") ? this[opt](key) : this._opt[opt] = key;
                 } else {
                     //plugin callback
-                    return this._plugins[opt][key](val);
+                    if (this._plugins[opt] != undefined){
+                        return this._plugins[opt][key](val);
+                    }
                 }
             },
             _dropData: function(){
                 this._treeEnv = {}; this._nodesMap = {}; this._data = {};
             },
-            _createLine: function(node){
-                var isFolder = (node.nodes != undefined),
-                    isClosed = (node.closed === true && isFolder),
-                    cssClass = (node.cssClass) ? node.cssClass : "",
-                    bungClass = (node.bungClass) ? node.bungClass : "",
-                    subIconClass = (node.subIconClass) ? node.subIconClass : "",
-                    title = (node.safeTitle !== false) ? getEscapedText(node.title || "")  : (node.title || ""),
-                    alt = (node.alt) ? " title='" + node.alt +"' ": "",
-                    hasChild = (isFolder && node.nodes.length > 0),
-                    iconSizeStyle = (node.iconSize != undefined) ? "height:" + node.iconSize + "px; width:" + node.iconSize + "px;" : "",
-                    itemDiv = $("<table class='simple-tree-item "+((isFolder) ? "simple-tree-folder" : "simple-tree-child") + " " + cssClass + "'><tr>" +
-                        "<td><span class='simple-tree-expand "+((!hasChild) ? "simple-tree-no-child" : "" )+ " " + ((isClosed) ? "simple-tree-close": "") + "'>&nbsp;</span></td>"+
-                        "<td>" + ((node.icon != undefined) ? "<img src='"+ node.icon + "' class='simple-tree-item-icon' style='" + iconSizeStyle + "'>"
-                        : "<span class='simple-tree-item-icon'>&nbsp;</span>") + "<span class='simple-tree-item-sub-icon " + subIconClass + "'>&nbsp;</span></td>"+
-                        "<td><span class='simple-tree-title' "+ alt +">" + title + "</span></td><td class='simple-tree-last-td'><span class='simple-tree-bung " + bungClass + "'>&nbsp;</span></td></tr></table>"),
-                    ul = (isFolder) ? this._getNewContainerEl(node.id) : undefined;
-
-                this._opt["showTitle"] && itemDiv.attr("title", title);
-
-                (isClosed && ul) ? ul.hide() : null;
-                if (node.hideNodeTitle === true) {
-                    itemDiv.hide();
-                }
-                itemDiv.data({
-                    "id": node.id
-                });
-                node.userData = (node.userData == undefined) ? {} : node.userData;
-                return {itemDiv: itemDiv, ul: ul};
-            },
             _addNewNode: function(params){
                 var parentId = params.parentId,
                     data = params.data,
                     buff = params.buff,
+                    sysNode = params.sysNode,
                     sort = params.sort,//sort only from setData, when inserting new node, getting only position
                     pos = params.pos;
 
-                if (!buff){
-                    showError('Error :: append HTML element to undefined container');
-                    return;
-                }
-                var tmpDiv = $("<div>"); tmpDiv.data("id", parentId);
                 var nodesMap = this._nodesMap,
-                    newLine,
                     canAdd = true,
                     self = this;
 
-                function createNewMapItem(node, divs, nodesContainer, parentId, bung){
-                    var struct = {
-                        node: node,
-                        divs: divs,
-                        nodesContainer: nodesContainer,
-                        parentId: parentId,
-                        bung: bung
-                    };
-                    return struct;
+                var fakeParent = {
+                    node: {
+                        id: parentId
+                    },
+                    drawn: true,
+                    nodesContainer: $("<div></div>")
+                };
+
+                var tmpDiv = fakeParent.nodesContainer;
+
+                if (sysNode && sysNode.drawn){
+                    sysNode.parentId = parentId;
+                    tmpDiv.append(sysNode.divs, sysNode.nodesContainer);
+                } else {
+                    this._traverseNodes(data, function(node, parentNodeMap, level) {
+                        if (sort && node.nodes){
+                            sortNodes(node.nodes);
+                        }
+                        //create node and return $("<ul>") element if node has children
+                        node.id = (node.id == undefined) ? self._generateUniqueId(nodesMap) : node.id;
+                        if (nodesMap[node.id] != undefined){
+                            showError("Error :: Detects duplicate ID in data");
+                            canAdd = false;
+                            return false;
+                        } else {
+                            var pId = (parentNodeMap && parentNodeMap.node.id) || parentId;
+                            var nodeMap = nodesMap[node.id] = (nodesMap[node.id] || {});
+
+                            createLine.call(self, node, pId, nodeMap);
+
+                            drawSingleNodeMap(nodesMap, parentNodeMap, node.id);
+
+                        }
+                        return nodeMap;
+                    }, {}, fakeParent);
                 }
 
-                this._traverseNodes(data, function(node, pdiv, level) {
-                    if (sort && node.nodes){
-                        sortNodes(node.nodes);
+                var parentMap = this._getNodesMap(parentId);
+                if (canAdd && (parentId && parentMap && parentMap.drawn) || !parentId){
+                    if (!buff){
+                        showError('Error :: append HTML element to undefined container');
+                        return;
                     }
-                    //create node and return $("<ul>") element if node has children
-                    node.id = (node.id == undefined) ? self._generateUniqueId(nodesMap) : node.id;
-                    if (nodesMap[node.id] != undefined){
-                        showError("Error :: Detects duplicate ID in data");
-                        canAdd = false;
-                        return false;
-                    } else {
-                        newLine = self._createLine(node);
-                        nodesMap[node.id] = createNewMapItem(node, newLine.itemDiv, newLine.ul, pdiv.data("id"), {});
-                        pdiv.append(newLine.itemDiv, newLine.ul);
-                    }
-                    return newLine.ul;
-                }, {div: tmpDiv});
-                if (canAdd){
                     if (pos != undefined && pos != -1){
                         var sysStruct = this._getNodesMap(parentId);
                         if (sysStruct.node.nodes.length > pos) {
                             var posNode = this._getNodesMap(sysStruct.node.nodes[pos].id);
-                            posNode.divs.before(tmpDiv.children());
+                            if (posNode.drawn){
+                                posNode.divs.before(tmpDiv.children());
+                            }
+
                         } else {
                             buff.append(tmpDiv.children());
                         }
@@ -410,7 +457,7 @@ define(function (require) {
             },
             _getNewContainerEl: function(id){
                 //return html container for children
-                return $("<div class='simple-tree-container'>").data("id", id);
+                return $("<div class='simple-tree-container' data-id='" + id + "'></div>");
             },
             _generateUniqueId: function(map){
                 function getGuid(){
@@ -430,10 +477,9 @@ define(function (require) {
             traverseNodes: function(node, callback, opt){
                 this._traverseNodes(node, callback, opt);
             },
-            _traverseNodes: function(node, callback, opt, level) {
+            _traverseNodes: function(node, callback, opt, pNode, level) {
                 opt = (opt) ? opt : {};
-                var list = node['nodes'], pDiv,
-                    div = opt.div,
+                var list = node['nodes'], result,
                     level = level || 0,
                     params,
                     self = this,
@@ -442,9 +488,9 @@ define(function (require) {
 
                 if ($.isArray(node)) {
                     list = node;
-                    pDiv = div;
+                    result = pNode;
                 } else {
-                    pDiv = callback.call(this, node, div, level);
+                    result = callback.call(this, node, pNode, level);
                     var callTraverseOpt = opt.callTraverse;
                     delete opt['callTraverse'];
                     if (callTraverseOpt === false){
@@ -452,20 +498,19 @@ define(function (require) {
                         list = undefined;
                     }
                 }
-                if (list != undefined && pDiv !== false) {
+                if (list != undefined && result !== false) {
                     var i = 0, l = list.length;
                     function callTraverse(){
                         params = opt;
-                        params.div = pDiv;
                         level++;
-                        return self._traverseNodes(list[i], callback, params, level);
+                        return self._traverseNodes(list[i], callback, params, result, level);
                     }
 
                     if (reverse){
                         for (i = list.length - 1; i >= 0; i--){
                             //walk by reverse
                             if (callTraverse() === false){
-                                pDiv = false;
+                                result = false;
                                 //drop traverse
                                 break;
                             }
@@ -474,14 +519,14 @@ define(function (require) {
                         for (i = 0, l = list.length; i < l; i++){
                             //walk by default
                             if (callTraverse() === false){
-                                pDiv = false;
+                                result = false;
                                 //drop traverse
                                 break;
                             }
                         }
                     }
                 }
-                return pDiv;
+                return result;
             },
             getRootNode: function(){
                 var data = this._data,
@@ -522,7 +567,7 @@ define(function (require) {
                 this.addNode(parent.id, node, i);
             },
 
-            addNode: function(parentId, newData, pos){//data = {title: "node", id: "", nodes: [etc...]}
+            addNode: function(parentId, newData, pos, options){//data = {title: "node", id: "", nodes: [etc...]}
                 //for newData == array, ignored pos argument :todo see pos when add new array of items
                 var sysStruct = this._getNodesMap(parentId);
                 if (!sysStruct){
@@ -536,9 +581,8 @@ define(function (require) {
 
                 var data = sysStruct.node;
                 var parentEls = sysStruct.divs;
-                if (data.nodes == undefined || data.nodes.length == 0){
+                if (data.nodes.length == 0 && sysStruct.drawn){
                     //append container for nodes
-                    data.nodes = [];
                     $(parentEls[0]).addClass("simple-tree-folder").removeClass("simple-tree-child");
                     sysStruct.nodesContainer = (sysStruct.nodesContainer) ? sysStruct.nodesContainer : this._getNewContainerEl(parentId);
                     $(parentEls[parentEls.length - 1]).after(sysStruct.nodesContainer);
@@ -546,7 +590,8 @@ define(function (require) {
                 if (this.getRootNode() == data){
                     setMarginToRoot(data.hideNodeTitle, sysStruct.nodesContainer);
                 }
-                if (this._addNewNode({parentId: parentId, data:newData, buff: sysStruct.nodesContainer, pos: pos})){
+                var sysNode = options && options.sysNode;
+                if (this._addNewNode({parentId: parentId, data:newData, buff: sysStruct.nodesContainer, pos: pos, sysNode: sysNode})){
                     if ($.isArray(newData)){
                         if (newData.length > 0){
                             data.nodes = data.nodes.concat(newData);
@@ -555,7 +600,7 @@ define(function (require) {
                         (pos != undefined && pos != -1) ? data.nodes.splice(pos, 0, newData)
                                            : data.nodes.push(newData);
                     }
-                    if (data.nodes.length > 0)
+                    if (data.nodes.length > 0 && sysStruct.drawn)
                         $(parentEls[0]).find(".simple-tree-expand").removeClass("simple-tree-no-child");
 
                     return true;
@@ -563,10 +608,14 @@ define(function (require) {
                 return false;
             },
             moveNodeByPos: function(node, parentId, pos, source){
+                rememberSelection.call(this);
                 source = (source) ? source : this;
                 parentId = (parentId === undefined) ? source.getParentNodeId(node.id) : parentId;
-                source.removeNode(node.id);
-                return this.addNode(parentId, node, pos);
+                var sysStruct = this._getNodesMap(node.id);
+                source.removeNode(node.id, {detach: true});
+                var added = this.addNode(parentId, node, pos, {sysNode: sysStruct});
+                selectionChanged.call(this);
+                return added;
             },
             getNodePos: function(id){
                 var pNode = this.getParentNode(id),
@@ -581,7 +630,9 @@ define(function (require) {
                 }
                 return ret;
             },
-            removeNode: function(id){
+            removeNode: function(id, opt){
+                var opt = opt || {};
+                var detachOnly = opt.detach;
                 rememberSelection.call(this);
                 var sysStruct = this._getNodesMap(id),
                     self = this;
@@ -589,8 +640,15 @@ define(function (require) {
                     showError('Error :: There are no ID in tree');
                     return;
                 }
-                $(sysStruct.nodesContainer).remove().empty();
-                sysStruct.divs.remove().empty();
+                if (sysStruct.drawn){
+                    if (detachOnly){
+                        sysStruct.nodesContainer && sysStruct.nodesContainer.detach();
+                        sysStruct.divs.detach();
+                    } else {
+                        sysStruct.nodesContainer && sysStruct.nodesContainer.remove().empty();
+                        sysStruct.divs.remove().empty();
+                    }
+                }
                 //check for roots nodes
                 var notRoot = (sysStruct.parentId != undefined),
                     isItem;
@@ -601,17 +659,19 @@ define(function (require) {
                     for (var i = 0, l = children.length; i < l; i++){
                         if (children[i].id == id){
                             self.clearSelection(id);
-                            this._traverseNodes(children[i], function(cNode){
-                                self.clearSelection(cNode.id);
-                                delete self._nodesMap[cNode.id];
-                            });
+                            if (!detachOnly){
+                                this._traverseNodes(children[i], function(cNode){
+                                    self.clearSelection(cNode.id);
+                                    delete self._nodesMap[cNode.id];
+                                });
+                            }
                             children.splice(i, 1);
                             break;
                         }
                     }
-                    if (children.length == 0){
+                    if (children.length == 0 && parentStruct.drawn){
                         $(parentStruct.divs[0]).find(".simple-tree-expand").addClass("simple-tree-no-child");
-                        parentStruct.nodesContainer.empty().remove();
+                        sysStruct.nodesContainer && parentStruct.nodesContainer.empty().remove();
                         parentStruct.nodesContainer = undefined;
                     }
                 } else {
@@ -672,14 +732,23 @@ define(function (require) {
                 expand = (expand != undefined) ? expand : el.hasClass("simple-tree-close");
                 if (expand && node.closed){
                     el.removeClass("simple-tree-close");
-                    (nodeContainer) ? nodeContainer.show() : null;
                     node.closed = false;
+                    var parentNodeMap = this._getNodesMap(id);
+                    var nodes = node.nodes;
+                    for (var i = 0, l = nodes.length; i < l; i++){
+                        var nodeMapItem = this._getNodesMap(nodes[i].id);
+                        if (!nodeMapItem.drawn){
+                            createLine.call(this, nodes[i], id, nodeMapItem);
+                        }
+                        drawSingleNodeMap(this._nodesMap, parentNodeMap, nodes[i].id);
+                    }
+                    (nodeContainer) && nodeContainer.show();
                     if (callEvent){
                         trig.call(this, "onExpandNode", id);
                     }
                 } else if (!expand && !node.closed){
                     el.addClass("simple-tree-close");
-                    (nodeContainer) ? nodeContainer.hide() : null;
+                    (nodeContainer) && nodeContainer.hide();
                     node.closed = true;
                     if (callEvent){
                         trig.call(this, "onCollapseNode", id);
@@ -931,7 +1000,7 @@ define(function (require) {
                     node;
                 (id != undefined) ? node = this._getNodesMap(id) : node = this._getNodesMap(env[SELECTED_ONE_NODE_ID]);
                 if (node) {
-                    this._removeSelectedStyleToEl(node['divs']);
+                    node.divs && this._removeSelectedStyleToEl(node.divs);
                     env[SELECTED_ONE_NODE_ID] = undefined;
                 }
 
@@ -940,7 +1009,7 @@ define(function (require) {
                         if (id == undefined || selNodes[i] == id){
                             selNode = this._getNodesMap(selNodes[i]);
                             if (selNode) {
-                                this._removeSelectedStyleToEl(selNode['divs']);
+                                selNode.divs && this._removeSelectedStyleToEl(selNode.divs);
                                 selNodes.splice(i, 1);
                             }
                         }
@@ -1050,12 +1119,14 @@ define(function (require) {
             },
             setNodeBung: function(id, css, action){
                 var map = this._getNodesMap(id);
-                var bung = {
-                    css: css,
-                    action: action
-                };
-                map.bung = bung;
-                this._setNodeCustomCss(map, map.divs.find(".simple-tree-bung"), 'bungClass', bung.css);
+                if (map){
+                    var bung = {
+                        css: css,
+                        action: action
+                    };
+                    map.bung = bung;
+                    this._setNodeCustomCss(map, map.divs.find(".simple-tree-bung"), 'bungClass', bung.css);
+                }
             },
             getNodeBungClass: function(id){
                 return this._getNodeCustomCss(id, 'bungClass');

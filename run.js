@@ -101,7 +101,7 @@ define(function (require) {
         ]},
             {
                 onSelectionChanged: function(newSel, oldSel){
-                    console.log(newSel, oldSel);
+                    console.log("onSelectionChanged", newSel, oldSel);
                 },
                 onClick: function(){
                     console.log("click");
@@ -114,7 +114,7 @@ define(function (require) {
                     //return false;
                 },
                 dragEnd: function(dragNode, parentId, pos, source, destination){
-                    console.log(dragNode, twoTree.getNode(parentId));
+                    console.log("dragEnd", dragNode, twoTree.getNode(parentId));
 
                     //destination.moveNodeByPos(dragNode[0], parentId, pos, source);
                     //console.dir(destination.getData());
@@ -129,23 +129,27 @@ define(function (require) {
                         {title:"f3", id: 23},
                         {title:"f2", id: 24}
                     ]},
-                                    {sort:true, plugins: {drag:{
-                                        dragEnd: function(dragNode, id, pos, source, destination){
-                                            destination.moveNodeByPos(dragNode[0], id, pos, source);
+                                    {sort:true, plugins: {flowDrag:{
+                                        dragEnd: function(dragNode, id, pos){
+                                            hugeTree.moveNodeByPos(dragNode[0], id, pos);
                                         }
                                     }}}
                 );
 
         var createHugeNode = function(){
             // return node with 50 nodes
-            var maxChilds = 25,
+            function newTitle() {
+                return hugeTree._generateUniqueId().substring(0, 5) + title;
+            }
+            var maxChilds = 100,
                 maxNest = 2,
                 title = "Soooo long stiiiiiing, yeahh. this is simple string, include some words. for example this, or that. i want to believe.",
-                hugeNode = {title: title, nodes:[]};
+                hugeNode = {title: newTitle(), nodes:[], closed: true};
             var fill = function(nodes, maxNest){
                 maxNest--;
                 for (var i = 0; i < maxChilds; i++){
-                    var item = {title: title, nodes: []};
+
+                    var item = {title: newTitle(), nodes: [], closed: true};
                     nodes.push(item);
                     //debugger;
                     if (maxNest > 1){
@@ -157,7 +161,7 @@ define(function (require) {
                 //debugger;
             };
             for (var i = 0; i < maxChilds; i++){
-                var item = {title: title, nodes: [], closed: ((3*Math.random() > 1) ? true : false)};
+                var item = {title: newTitle(), nodes: [], closed: true}; //, closed: ((3*Math.random() > 1) ? true : false)
                 hugeNode.nodes.push(item);
                 fill(item.nodes, maxNest);
             }
@@ -170,8 +174,9 @@ define(function (require) {
         });
 
         $("#newNode").click(function(){
-            hugeTree.addNode(4,{title:"ch1"});
-            hugeTree.setNodeBung(4, "test", function(){
+            var node = hugeTree.getNode(4) || hugeTree.getRootNode();
+            hugeTree.addNode(node.id,{title:"ch1"});
+            hugeTree.setNodeBung(node.id, "test", function(){
                 console.log("Test");
             });
         });
@@ -181,9 +186,15 @@ define(function (require) {
             var node = jQuery.extend(true, {}, hugeNode);
             var begin = new Date;
             console.log();
-            hugeTree.addNode(parseInt(4*Math.random()), node);
+            hugeTree.setData(node);
             console.log((new Date) - begin + "ms");
-            console.dir(hugeTree.getData());
+            begin  = new Date();
+            var count = 0;
+            hugeTree.traverseNodes(hugeTree.getRootNode(), function(){
+                count++;
+            });
+            console.log((new Date) - begin + "ms" + count);
+
         });
 
         $("#focusNode").click(function(){
