@@ -863,6 +863,10 @@ define(function (require) {
                     endNode = this._getNodesMap(endId),
                     selNodes = env[SELECTED_NODES_ID] || [];
 
+                if (!firstNode.divs.is(":visible") || !endNode.divs.is(":visible")){
+                    return false;
+                }
+
                 if ((firstNode.divs.offset().top > endNode.divs.offset().top)){
                     var tmp = firstNode;
                     firstNode = endNode;
@@ -910,6 +914,8 @@ define(function (require) {
                 
                 env[SELECTED_NODES_ID] = collectIds;
 
+                return true;
+
             },            
             _onSelect: function(el, callEvent, ctrlPressed, shiftPressed){
                 if (!this.enable()) return;
@@ -950,8 +956,8 @@ define(function (require) {
 
                     if (shiftPressed){
                         var startSelectionId = env.shiftSelectedId || oldSelId;
-                        if (this._getNodesMap(startSelectionId)){
-                            this._collectNodesByShiftKey(startSelectionId, selId);
+                        if (this._getNodesMap(startSelectionId) && this._collectNodesByShiftKey(startSelectionId, selId)){
+                            // collect shift elems
                         } else {
                             // call single click
                             singleClick();
