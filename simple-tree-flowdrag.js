@@ -23,7 +23,10 @@ define(function (require) {
             var el = target.find(".simple-tree-expand.simple-tree-close");
             if (el.length > 0){
                 openClosedFolderTimer = setTimeout(function(){
-                    tree._expandCollapseNode(el);
+                    var parentEl = tree._getParentItemElement(el),
+                        itemId = parentEl.data("id"),
+                        map = tree._getNodesMap(itemId);
+                    map && tree._expandCollapseNode(map);
                 }, 1500);
             }
         }
