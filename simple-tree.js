@@ -208,7 +208,7 @@ define(function (require) {
         nodeMap.divs = nodeMap.divs || itemDiv;
         nodeMap.nodesContainer = nodeMap.nodesContainer || ul;
         nodeMap.drawn = drawn;
-        nodeMap.parentId = pId;
+        nodeMap.parentId = nodeMap.parentId || pId;
         nodeMap.bung = node.bung || {};
         return nodeMap;
     }
@@ -716,10 +716,15 @@ define(function (require) {
                 if (map != undefined){
                     if (!map.drawn){
                         //traverse all parents to open from first to this
+                        var parents = [];
                         this._traverseParents(map.node.id, function(pNode){
                             var pMap = this._getNodesMap(pNode.id);
-                            this._expandCollapseNode(pMap, true, false);
+                            parents.push(pMap);
                         });
+                        for (var i = parents.length - 1; i >= 0; i--){
+                            this._expandCollapseNode(parents[i], true, false);
+                        }
+                        parents.length = 0;
                     }
                     this._expandCollapseNode(map, true, callEvent);
                 }
@@ -735,9 +740,6 @@ define(function (require) {
                     node = map.node,
                     nodeContainer = this._getContainerForNodes(id);
 
-                if (!map.divs) {
-                    createLine.call(this, node, map.parentId, map);
-                }
                 var el = map.divs.find(".simple-tree-expand");
 
                 callEvent = (callEvent !== false && this.enable()) ? true : callEvent;
